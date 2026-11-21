@@ -5,7 +5,7 @@
 <h1 align="center">YT Music Playlist Downloader</h1>
 
 <p align="center">
-  Un'app desktop e uno script da riga di comando che scaricano una playlist di YouTube o YouTube Music in MP3 o M4A.<br>
+  Un'app desktop e uno script da riga di comando che scaricano una playlist di YouTube o YouTube Music, o un singolo brano, in MP3 o M4A.<br>
   Numera i file nell'ordine della playlist, scrive i tag, ricorda cosa ha già scaricato e può usare la sessione del browser per i video con restrizioni.
 </p>
 
@@ -46,7 +46,7 @@ migliore di ogni video e lo salva in MP3 o M4A.
 | Passo | Cosa fa lo script |
 |---|---|
 | **1. Controllo** | Per l'MP3, si ferma con codice di uscita 2 se `ffmpeg` non è nel PATH, prima di scaricare qualsiasi cosa. |
-| **2. Link** | Un link di `music.youtube.com` o `youtube.com` con il parametro `list=` diventa `https://www.youtube.com/playlist?list=…`, quindi funziona anche il link copiato da un brano in riproduzione dentro la playlist. |
+| **2. Link** | Un link di `music.youtube.com` o `youtube.com` con il parametro `list=` diventa `https://www.youtube.com/playlist?list=…`, quindi funziona anche il link copiato da un brano in riproduzione dentro la playlist. Il link di un brano (`watch?v=…`) scarica solo quel brano, anche quando suona dentro un mix radio (`list=RD…`), che non finisce mai. |
 | **3. Download** | Prende il miglior flusso audio. YouTube nasconde i flussi dietro una verifica in JavaScript: yt-dlp la risolve con Deno, Node.js, QuickJS o Bun, quello che trova installato. |
 | **4. Conversione** | **MP3**: FFmpeg converte l'audio al bitrate scelto (192 kbps se non dici altro). **M4A**: il flusso AAC originale di YouTube viene salvato così com'è, senza conversione e senza perdere qualità. |
 | **5. Tag** | Titolo e artista (e album, quando YouTube Music lo conosce). Gli MP3 ricevono tag ID3v2.3, la versione letta da Esplora file di Windows e dai lettori più vecchi. A scelta anche la copertina (la miniatura del video, ritagliata quadrata) e un titolo pulito, senza "(Official Video)" e simili. |
@@ -87,7 +87,7 @@ Per ogni brano il terminale mostra il titolo, poi percentuale, velocità e tempo
 
 | Schermata | Cosa c'è |
 |---|---|
-| **Scarica** | Il campo del link, riempito dagli appunti quando contengono un link di YouTube. **Carica** elenca i brani con posizione e durata; spunta quelli che vuoi. I brani già presenti nella cartella di destinazione sono segnati e lasciati fuori. Formato, qualità MP3 e cartella stanno in basso; ogni playlist ha la sua sottocartella. Durante il download ogni brano mostra l'avanzamento, poi una spunta o un'icona rossa con il motivo del salto nel suggerimento. **Annulla** si ferma dopo il blocco in corso. |
+| **Scarica** | Il campo del link, riempito dagli appunti quando contengono un link di YouTube. **Carica** elenca i brani con posizione e durata; spunta quelli che vuoi. I brani già presenti nella cartella di destinazione sono segnati e lasciati fuori. Formato, qualità MP3 e cartella stanno in basso; ogni playlist ha la sua sottocartella, un brano singolo va direttamente nella cartella. Durante il download ogni brano mostra l'avanzamento, poi una spunta o un'icona rossa con il motivo del salto nel suggerimento. **Annulla** si ferma dopo il blocco in corso. |
 | **Cronologia** | Gli ultimi 100 download: playlist, data, formato, cartella, quanti brani sono stati salvati e quali saltati, con il motivo. **Apri cartella**, **Ricarica**, e **Sincronizza**, che ricarica la playlist e scarica solo i brani aggiunti nel frattempo. |
 | **Impostazioni** | Copertina nei file (attiva di default) e titoli puliti (disattivi), cookie del browser (vedi [Cookie del browser](#cookie-del-browser)) o un file `cookies.txt`, lingua (italiano, inglese o quella del sistema), tema (chiaro, scuro o quello del sistema), le versioni di yt-dlp, FFmpeg e del runtime JavaScript in uso, e **Segnala un problema**: copia quelle versioni e gli ultimi errori (senza link) e apre una nuova issue su GitHub già compilata. |
 
@@ -124,7 +124,7 @@ La stessa app con le stesse schermate, con quello che cambia sul telefono:
 | | Su Android |
 |---|---|
 | **Formato e cartella** | Solo M4A (sul telefono non c'è FFmpeg), sempre in `Music/YT Music Playlist Downloader/<playlist>`, dove i lettori musicali lo trovano. Non serve nessun permesso di archiviazione. |
-| **Come passare il link** | In YouTube Music, **Condividi → YT Music Playlist Downloader**: l'app si apre con la playlist caricata, o ci passa se è già aperta. Funziona anche **Copia link** e poi aprire l'app, tramite gli appunti. I link alle playlist si possono anche aprire con l'app, se nelle impostazioni Android dell'app attivi *Apri link supportati*. |
+| **Come passare il link** | In YouTube Music, **Condividi → YT Music Playlist Downloader**: l'app si apre con la playlist (o il brano) caricata, o ci passa se è già aperta. Funziona anche **Copia link** e poi aprire l'app, tramite gli appunti. I link alle playlist e ai brani si possono anche aprire con l'app, se nelle impostazioni Android dell'app attivi *Apri link supportati*. |
 | **Video riservati** | Sul telefono i cookie del browser non si possono leggere: in **Impostazioni** importa un `cookies.txt` esportato da un computer. |
 | **Playlist lunghe** | Il download gira come servizio in primo piano con una notifica, quindi continua a schermo spento (la prima volta Android chiede di consentire le notifiche). L'app chiede conferma prima di scaricare con i dati mobili. |
 | **JavaScript** | L'app include un suo QuickJS-ng, quindi le verifiche di YouTube vengono risolte anche sul telefono. |
@@ -165,11 +165,12 @@ python -m yt_dlp --version
 
 ```bash
 python downloader.py "https://music.youtube.com/playlist?list=..."
+python downloader.py "https://music.youtube.com/watch?v=..."      # un singolo brano
 ```
 
 | Opzione | Valori | Predefinito | Cosa fa |
 |---|---|---|---|
-| `url` | un link di playlist | | La playlist da scaricare. Mettilo tra virgolette: altrimenti la `&` di alcuni link spezza il comando. |
+| `url` | un link di playlist o di brano | | Cosa scaricare. Mettilo tra virgolette: altrimenti la `&` di alcuni link spezza il comando. |
 | `-o`, `--output` | una cartella | `downloads` | Dove vanno i file. La cartella viene creata se non esiste. |
 | `-f`, `--format` | `mp3`, `m4a` | `mp3` | MP3 (serve FFmpeg) o M4A (l'audio AAC originale, senza FFmpeg). |
 | `-b`, `--bitrate` | `128`, `192`, `256`, `320` | `192` | Bitrate degli MP3 in kbps. Ignorato con l'M4A. |
@@ -312,10 +313,10 @@ scaricati vengono saltati.
 </details>
 
 <details>
-<summary><b>Un file si chiama "NA - …" invece di avere un numero.</b></summary>
+<summary><b>Un file non ha il numero davanti al titolo.</b></summary>
 
-Il link puntava a un singolo video, non a una playlist, quindi yt-dlp non ha una posizione da mettere davanti al
-titolo. Usa il link della playlist, quello con `list=`.
+Viene dal link di un brano, non di una playlist, quindi non c'è una posizione da mettere. Per avere i numeri usa il
+link della playlist, quello con `list=`.
 
 </details>
 

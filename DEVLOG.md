@@ -1,5 +1,14 @@
 # Devlog
 
+## 2026-11-21 — Single songs
+
+- A song link (`watch?v=…`) already went through yt-dlp as a one-entry download, but its file was called
+  `NA - <title>`: the template now writes the number only when there is one (`%(playlist_index&{:03d} - |)s`).
+- `normalize_url()` turns song links into a plain `watch?v=` link, and a song playing inside a radio mix
+  (`list=RD…`, except the curated `RDCLAK`/`RDTMAK` playlists) into the song: the mix is endless.
+- GUI texts talk about playlists *or* songs; **Sync** is hidden for songs; Android opens `music.youtube.com/watch`
+  links too. Checked from the CLI with a mix link: one file, no number.
+
 ## 2026-11-19 — Downloads in the background on Android
 
 - The extension is now `ytmpd_android` (`android/extension`, wheel 0.2.0) with a second service, `KeepAlive`, on top of

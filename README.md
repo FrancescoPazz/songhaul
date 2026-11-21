@@ -5,7 +5,7 @@
 <h1 align="center">YT Music Playlist Downloader</h1>
 
 <p align="center">
-  A desktop app and a command-line script that download a YouTube or YouTube Music playlist as MP3 or M4A.<br>
+  A desktop app and a command-line script that download a YouTube or YouTube Music playlist, or a single song, as MP3 or M4A.<br>
   It numbers the files in playlist order, writes the tags, remembers what it already downloaded and can use your browser's session for restricted videos.
 </p>
 
@@ -46,7 +46,7 @@ best available audio of each video and saves it as MP3 or M4A.
 | Step | What the script does |
 |---|---|
 | **1. Check** | For MP3, stops with exit code 2 if `ffmpeg` is not on the PATH, before downloading anything. |
-| **2. Link** | A link from `music.youtube.com` or `youtube.com` with a `list=` parameter becomes `https://www.youtube.com/playlist?list=…`, so a link copied from a song playing inside the playlist works too. |
+| **2. Link** | A link from `music.youtube.com` or `youtube.com` with a `list=` parameter becomes `https://www.youtube.com/playlist?list=…`, so a link copied from a song playing inside the playlist works too. A song link (`watch?v=…`) downloads just that song, also when it's playing inside a radio mix (`list=RD…`), which never ends. |
 | **3. Download** | Takes the best audio stream. YouTube hides its streams behind a JavaScript challenge: yt-dlp solves it with Deno, Node.js, QuickJS or Bun, whichever is installed. |
 | **4. Convert** | **MP3**: FFmpeg converts the audio at the bitrate you chose (192 kbps unless you say otherwise). **M4A**: YouTube's own AAC stream is saved as it is, with no conversion and no quality lost. |
 | **5. Tag** | Title and artist (and album, when YouTube Music knows it). MP3s get ID3v2.3 tags, the version Windows Explorer and older players read. Optionally the cover art (the video thumbnail, cropped square) and a clean title without "(Official Video)" and the like. |
@@ -88,7 +88,7 @@ messages are in Italian.
 
 | Screen | What is on it |
 |---|---|
-| **Download** | The link field, filled in from the clipboard when it holds a YouTube link. **Load** lists the tracks with position and duration; tick the ones you want. Tracks already in the destination folder are marked and left out. Format, MP3 quality and folder sit at the bottom; each playlist gets its own subfolder. During the download every track shows its progress, then a check mark or a red icon whose tooltip says why it was skipped. **Cancel** stops after the current chunk. |
+| **Download** | The link field, filled in from the clipboard when it holds a YouTube link. **Load** lists the tracks with position and duration; tick the ones you want. Tracks already in the destination folder are marked and left out. Format, MP3 quality and folder sit at the bottom; each playlist gets its own subfolder, a single song goes straight into the folder. During the download every track shows its progress, then a check mark or a red icon whose tooltip says why it was skipped. **Cancel** stops after the current chunk. |
 | **History** | The last 100 downloads: playlist, date, format, folder, how many tracks were saved and which were skipped, with the reason. **Open folder**, **Load again**, and **Sync**, which loads the playlist and downloads only the tracks added since. |
 | **Settings** | Cover art in the files (on by default) and clean titles (off), browser cookies (see [Browser cookies](#browser-cookies)) or a `cookies.txt` file, language (Italian, English or the system's), theme (light, dark or the system's), the versions of yt-dlp, FFmpeg and the JavaScript runtime in use, and **Report a problem**: it copies those versions and the last errors (no links) and opens a new GitHub issue with them. |
 
@@ -125,7 +125,7 @@ The same app and screens, with what changes on a phone:
 | | On Android |
 |---|---|
 | **Format and folder** | M4A only (there's no FFmpeg on the phone), always in `Music/YT Music Playlist Downloader/<playlist>`, where music players find it. No storage permission is needed. |
-| **Getting the link** | In YouTube Music, **Share → YT Music Playlist Downloader**: the app opens with the playlist loaded, or switches to it if it's already open. **Copy link** and then opening the app works too, through the clipboard. Playlist links can also be opened with the app if you turn on *Open supported links* for it in Android's app settings. |
+| **Getting the link** | In YouTube Music, **Share → YT Music Playlist Downloader**: the app opens with the playlist (or the song) loaded, or switches to it if it's already open. **Copy link** and then opening the app works too, through the clipboard. Playlist and song links can also be opened with the app if you turn on *Open supported links* for it in Android's app settings. |
 | **Restricted videos** | The browser's cookies can't be read on a phone: import a `cookies.txt` exported from a computer in **Settings**. |
 | **Long playlists** | The download runs as a foreground service with a notification, so it goes on with the screen off (the first time, Android asks to allow notifications). The app asks before downloading on mobile data. |
 | **JavaScript** | The app ships its own QuickJS-ng, so YouTube's challenges are solved on the phone too. |
@@ -165,11 +165,12 @@ python -m yt_dlp --version
 
 ```bash
 python downloader.py "https://music.youtube.com/playlist?list=..."
+python downloader.py "https://music.youtube.com/watch?v=..."      # a single song
 ```
 
 | Option | Values | Default | What it does |
 |---|---|---|---|
-| `url` | a playlist link | | The playlist to download. Put it in quotes: the `&` in some links breaks the command otherwise. |
+| `url` | a playlist or song link | | What to download. Put it in quotes: the `&` in some links breaks the command otherwise. |
 | `-o`, `--output` | a folder | `downloads` | Where the files go. The folder is created if it doesn't exist. |
 | `-f`, `--format` | `mp3`, `m4a` | `mp3` | MP3 (needs FFmpeg) or M4A (the original AAC audio, no FFmpeg). |
 | `-b`, `--bitrate` | `128`, `192`, `256`, `320` | `192` | MP3 bitrate in kbps. Ignored with M4A. |
@@ -311,10 +312,10 @@ downloaded are skipped.
 </details>
 
 <details>
-<summary><b>A file is called "NA - …" instead of having a number.</b></summary>
+<summary><b>A file has no number in front of the title.</b></summary>
 
-The link pointed to a single video, not a playlist, so yt-dlp has no position to put in front of the title. Use the
-playlist link, the one with `list=`.
+It came from a song link, not a playlist, so there is no position to put there. Use the playlist link, the one with
+`list=`, to get the numbers.
 
 </details>
 
