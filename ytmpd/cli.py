@@ -32,9 +32,9 @@ def print_event(e):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Scarica una playlist YouTube/YouTube Music in MP3 o M4A."
+        description="Scarica una playlist, o un singolo brano, da YouTube/YouTube Music in MP3 o M4A."
     )
-    parser.add_argument("url", help="URL della playlist")
+    parser.add_argument("url", help="URL della playlist o del brano")
     parser.add_argument("-o", "--output", default="downloads", help="Cartella di output (default: downloads)")
     parser.add_argument("-f", "--format", choices=core.FORMATS, default="mp3",
                         help="mp3 (richiede FFmpeg) o m4a (audio originale, senza FFmpeg). Default: mp3")
@@ -62,7 +62,7 @@ def main(argv=None):
               "Installa FFmpeg e riapri il terminale, oppure usa -f m4a.", file=sys.stderr)
         return 2
 
-    print(f"Playlist: {core.normalize_url(args.url)}")
+    print(f"Link:     {core.normalize_url(args.url)}")
     print(f"Output:   {Path(args.output).resolve()}")
     print(f"Formato:  {args.format}" + (f" {args.bitrate} kbps" if args.format == "mp3" else ""))
     print(f"Browser:  {args.browser}")

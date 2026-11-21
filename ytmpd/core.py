@@ -39,13 +39,28 @@ def js_runtime_names() -> list[str]:
     return names + (["quickjs"] if "path" in js_runtimes()["quickjs"] else [])
 
 
+def is_mix(playlist_id: str) -> bool:
+    """YouTube's endless radio mixes (RD...), started from a song. RDCLAK/RDTMAK ones are real, finite playlists."""
+    return playlist_id.startswith("RD") and not playlist_id.startswith(("RDCLAK", "RDTMAK"))
+
+
 def normalize_url(url: str) -> str:
-    """Any youtube.com / music.youtube.com link with list= becomes the plain playlist link."""
+    """youtube.com / music.youtube.com links: one with list= becomes the plain playlist link, a song the plain
+    video link. A song playing inside a radio mix is the song: the mix never ends."""
     parsed = urlparse(url)
-    playlist_id = parse_qs(parsed.query).get("list", [None])[0]
-    if playlist_id and parsed.netloc in {"music.youtube.com", "www.youtube.com", "youtube.com", "m.youtube.com"}:
+    if parsed.netloc not in {"music.youtube.com", "www.youtube.com", "youtube.com", "m.youtube.com"}:
+        return url
+    query = parse_qs(parsed.query)
+    playlist_id, video_id = query.get("list", [None])[0], query.get("v", [None])[0]
+    if playlist_id and not (video_id and is_mix(playlist_id)):
         return f"https://www.youtube.com/playlist?list={playlist_id}"
+    if video_id:
+        return f"https://www.youtube.com/watch?v={video_id}"
     return url
+
+
+def is_playlist_url(url: str) -> bool:
+    return "list=" in normalize_url(url)
 
 
 def bundled_ffmpeg() -> str | None:
@@ -129,7 +144,7 @@ def build_options(output_dir: str, fmt: str = "mp3", bitrate: str = "192", brows
     paths = {"home": str(output_dir)} | ({"temp": str(temp_dir)} if temp_dir else {})
     opts = _base_options(browser, cookies) | {
         "paths": paths,
-        "outtmpl": "%(playlist_index)03d - %(title)s.%(ext)s",
+        "outtmpl": "%(playlist_index&{:03d} - |)s%(title)s.%(ext)s",  # a single song has no number
         "download_archive": str(archive or archive_path(output_dir)),
         "ignoreerrors": True,
         "nooverwrites": True,
@@ -331,7 +346,7 @@ def download(url: str, output_dir: str = "downloads", fmt: str = "mp3", bitrate:
              browser: str = "none", items: str | None = None, on_event=lambda e: None, cancel=None,
              cookies: str | None = None, temp_dir: str | None = None, archive: str | None = None,
              covers: bool = False, clean_titles: bool = False) -> dict:
-    """Download the playlist into output_dir. Tracks already in the folder's archive are skipped.
+    """Download the playlist, or the single song, into output_dir. Tracks already in the folder's archive are skipped.
 
     on_event gets dicts with "type": track_started, progress, track_done, track_skipped, warning, finished.
     cancel is an optional threading.Event: set it to stop after the current chunk.

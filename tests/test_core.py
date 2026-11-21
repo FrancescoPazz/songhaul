@@ -12,9 +12,18 @@ class NormalizeUrl(unittest.TestCase):
         self.assertEqual(core.normalize_url("https://www.youtube.com/watch?v=abc&list=PL123&index=4"),
                          "https://www.youtube.com/playlist?list=PL123")
 
-    def test_single_video_untouched(self):
+    def test_single_video(self):
         url = "https://www.youtube.com/watch?v=abc"
         self.assertEqual(core.normalize_url(url), url)
+        self.assertEqual(core.normalize_url("https://music.youtube.com/watch?v=abc&si=x"), url)
+        self.assertFalse(core.is_playlist_url(url))
+
+    def test_song_playing_inside_radio_mix(self):
+        self.assertEqual(core.normalize_url("https://music.youtube.com/watch?v=abc&list=RDAMVMabc"),
+                         "https://www.youtube.com/watch?v=abc")
+        # curated YouTube Music playlists start with RD too, but they are playlists
+        self.assertEqual(core.normalize_url("https://music.youtube.com/watch?v=abc&list=RDCLAK5uy_x"),
+                         "https://www.youtube.com/playlist?list=RDCLAK5uy_x")
 
     def test_other_sites_untouched(self):
         url = "https://example.com/watch?list=PL123"
@@ -51,6 +60,13 @@ class BuildOptions(unittest.TestCase):
         self.assertEqual(opts["paths"], {"home": "music", "temp": "tmp"})
         self.assertEqual(opts["download_archive"], "data/a.txt")
         self.assertNotIn("/", opts["outtmpl"])  # relative, so yt-dlp applies paths
+
+    def test_file_names(self):
+        tmpl = core.build_options("out")["outtmpl"]
+        ydl = core.yt_dlp.YoutubeDL({"quiet": True})
+        song = {"id": "abc", "title": "Song", "ext": "mp3"}
+        self.assertEqual(ydl.prepare_filename(song, outtmpl=tmpl), "Song.mp3")
+        self.assertEqual(ydl.prepare_filename(song | {"playlist_index": 4}, outtmpl=tmpl), "004 - Song.mp3")
 
     def test_cookies_file_wins_over_browser(self):
         opts = core.build_options("out", browser="chrome", cookies="c.txt")

@@ -38,7 +38,7 @@ legacy_packaging = true  # extracts libqjs.so to disk, the only place Android le
 [tool.flet.android.gradle_properties]
 "kotlin.jvm.target.validation.mode" = "warning"
 
-# "Open with" for playlist links. Android 12+ opens unverified links in the browser unless the user turns on
+# "Open with" for playlist and YouTube Music song links. Android 12+ opens unverified links in the browser unless the user turns on
 # "Open supported links" for the app in its system settings.
 [[tool.flet.android.activity.intent_filter]]
 actions = ["android.intent.action.VIEW"]
@@ -47,6 +47,7 @@ data = [
     { scheme = "https", host = "music.youtube.com", pathPrefix = "/playlist" },
     { scheme = "https", host = "www.youtube.com", pathPrefix = "/playlist" },
     { scheme = "https", host = "m.youtube.com", pathPrefix = "/playlist" },
+    { scheme = "https", host = "music.youtube.com", pathPrefix = "/watch" },  # songs; not www: every video
 ]
 
 # Long downloads with the screen off: the foreground service of ytmpd_android (flutter_foreground_task).

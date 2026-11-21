@@ -76,8 +76,8 @@ def link_in_text(text):
 
 
 def link_from_route(route):
-    """A YouTube link opened with the app arrives as a route like "/playlist?list=..."."""
-    return f"https://www.youtube.com{route}" if route and "list=" in route else None
+    """A YouTube link opened with the app arrives as a route like "/playlist?list=..." or "/watch?v=..."."""
+    return f"https://www.youtube.com{route}" if route and ("list=" in route or "v=" in route) else None
 
 
 def open_folder(path):
@@ -604,7 +604,8 @@ class App:
             ft.TextButton(self.t("load_again"), icon=ft.Icons.REFRESH,
                           on_click=lambda e, u=h["url"]: self.load_again(u), disabled=self.downloading),
             ft.TextButton(self.t("sync"), icon=ft.Icons.SYNC, tooltip=self.t("sync_help"),
-                          on_click=lambda e, u=h["url"]: self.load_again(u, sync=True), disabled=self.downloading),
+                          on_click=lambda e, u=h["url"]: self.load_again(u, sync=True), disabled=self.downloading,
+                          visible=core.is_playlist_url(h["url"])),  # a song has nothing new to sync
         ], wrap=True)
         return ft.Container(ft.Column(lines + [actions], spacing=4), padding=16, border_radius=12,
                             bgcolor=ft.Colors.SURFACE_CONTAINER_LOW)
