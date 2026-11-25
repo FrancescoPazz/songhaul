@@ -2,7 +2,7 @@
 
 yt-dlp needs a JavaScript runtime for YouTube. Android only lets an app execute files from its native library folder,
 and Flet's Python packaging copies any plain `.so` found in an installed package there. So the `qjs` executable is
-shipped as `ytmpd_qjs/libqjs.so` inside a wheel tagged for each Android ABI, and ytmpd.core finds it through
+shipped as `ytmpd_qjs/libqjs.so` inside a wheel tagged for each Android ABI, and songhaul.core finds it through
 ANDROID_NATIVE_LIBRARY_DIR. The app must be built with `legacy_packaging = true` so the file is extracted to disk.
 
 Needs the Android NDK and CMake from the Android SDK. Run from the repo root:

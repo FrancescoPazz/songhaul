@@ -1,6 +1,6 @@
 import unittest
 
-from ytmpd import core
+from songhaul import core
 
 
 class NormalizeUrl(unittest.TestCase):
@@ -229,7 +229,7 @@ class Covers(unittest.TestCase):
 
 class UpdateCheck(unittest.TestCase):
     def test_versions(self):
-        from ytmpd import update
+        from songhaul import update
 
         self.assertTrue(update.is_newer("v0.2.1", "0.2.0"))
         self.assertTrue(update.is_newer("v0.10.0", "0.9.9"))  # numbers, not text
@@ -240,11 +240,68 @@ class UpdateCheck(unittest.TestCase):
 
 class Translations(unittest.TestCase):
     def test_same_keys_and_every_reason_explained(self):
-        from ytmpd.i18n import STRINGS
+        from songhaul.i18n import STRINGS
 
         self.assertEqual(STRINGS["it"].keys(), STRINGS["en"].keys())
         for kind in [k for k, _ in core._REASONS] + ["other"]:
             self.assertIn(f"reason_{kind}", STRINGS["en"])
+
+
+class Rename(unittest.TestCase):
+    """0.6.0 renamed the app: what earlier versions left on disk must still be found."""
+
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.old, self.new = Path(tmp.name) / "old", Path(tmp.name) / "new"
+        self.old.mkdir()
+
+    def test_data_is_copied_once(self):
+        from songhaul import paths
+
+        (self.old / "history.json").write_text("[1]", encoding="utf-8")
+        (self.old / "cookies.txt").write_text("secret", encoding="utf-8")
+        paths.migrate(self.old, self.new)
+        self.assertEqual((self.new / "history.json").read_text(encoding="utf-8"), "[1]")
+        self.assertEqual((self.new / "settings.json").read_text(encoding="utf-8"), "{}")
+        self.assertTrue((self.old / "history.json").is_file())  # a copy: 0.5.0 still works
+        (self.new / "cookies.txt").unlink()  # removed by the user in Settings
+        paths.migrate(self.old, self.new)
+        self.assertFalse((self.new / "cookies.txt").exists())
+
+    def test_newer_data_is_never_overwritten(self):
+        from songhaul import paths
+
+        self.new.mkdir()
+        (self.old / "settings.json").write_text('{"theme": "dark"}', encoding="utf-8")
+        (self.new / "settings.json").write_text('{"theme": "light"}', encoding="utf-8")
+        paths.migrate(self.old, self.new)
+        self.assertIn("light", (self.new / "settings.json").read_text(encoding="utf-8"))
+
+    def test_fresh_install_has_nothing_to_copy(self):
+        from songhaul import paths
+
+        paths.migrate(self.old / "missing", self.new)
+        self.assertFalse(self.new.exists())
+
+    def test_old_music_folder_stays_in_use(self):
+        from songhaul import paths
+
+        self.assertEqual(paths.music_folder(self.old), self.old / paths.NAME)
+        (self.old / paths.OLD_NAME).mkdir()
+        self.assertEqual(paths.music_folder(self.old), self.old / paths.OLD_NAME)
+
+    def test_where_the_old_data_was(self):
+        from pathlib import Path
+
+        from songhaul import paths
+
+        self.assertEqual(paths.old_data(Path("Company/Songhaul/data"), packaged=True),
+                         Path("Company/YT Music Playlist Downloader/data"))
+        self.assertEqual(paths.old_data(Path.home() / ".songhaul", packaged=False), Path.home() / ".ytmpd")
 
 
 if __name__ == "__main__":

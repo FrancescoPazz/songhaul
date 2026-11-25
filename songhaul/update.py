@@ -5,7 +5,7 @@ import re
 import ssl
 import urllib.request
 
-REPO = "FrancescoPazz/yt-music-playlist-downloader"
+REPO = "FrancescoPazz/songhaul"
 ISSUES = f"https://github.com/{REPO}/issues/new"
 
 
@@ -27,7 +27,7 @@ def latest_release(timeout: float = 5) -> dict:
         context = ssl.create_default_context()
     request = urllib.request.Request(f"https://api.github.com/repos/{REPO}/releases/latest",
                                      headers={"Accept": "application/vnd.github+json",
-                                              "User-Agent": "yt-music-playlist-downloader"})
+                                              "User-Agent": "songhaul"})
     with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
         data = json.load(response)
     return {"tag": data["tag_name"], "url": data["html_url"]}

@@ -18,7 +18,7 @@ from yt_dlp.utils import DownloadCancelled
 BROWSERS = ("none", "chrome", "edge", "firefox", "brave", "opera", "vivaldi")
 FORMATS = ("mp3", "m4a")
 BITRATES = ("128", "192", "256", "320")
-ARCHIVE = ".ytmpd-archive.txt"
+ARCHIVE = ".ytmpd-archive.txt"  # the old name, for good: existing folders have it
 # yt-dlp needs a JavaScript runtime for YouTube and enables only Deno by default.
 # Enabling all of them lets it use whichever is installed (priority: deno, node, quickjs, bun).
 JS_RUNTIMES = {"deno": {}, "node": {}, "quickjs": {}, "bun": {}}

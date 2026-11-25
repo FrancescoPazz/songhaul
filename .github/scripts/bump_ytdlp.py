@@ -45,7 +45,7 @@ def main():
         return
 
     old_ejs = re.search(r'"yt-dlp-ejs==([\w.]+)"', Path("pyproject.toml").read_text()).group(1)
-    app = re.search(r'__version__ = "([\d.]+)', Path("ytmpd/__init__.py").read_text()).group(1)
+    app = re.search(r'__version__ = "([\d.]+)', Path("songhaul/__init__.py").read_text()).group(1)
     major, minor, patch = numbers(app)
     new_app = f"{major}.{minor}.{patch + 1}"
 
@@ -53,7 +53,7 @@ def main():
     replace("pyproject.toml", f">={current}", f">={latest}")
     replace("pyproject.toml", f'"yt-dlp-ejs=={old_ejs}"', f'"yt-dlp-ejs=={ejs}"')
     replace("pyproject.toml", f'version = "{app}"', f'version = "{new_app}"')
-    replace("ytmpd/__init__.py", f'"{app}"', f'"{new_app}"')
+    replace("songhaul/__init__.py", f'"{app}"', f'"{new_app}"')
     for readme in ("README.md", "README.it.md"):  # the version badge
         replace(readme, f"yt--dlp-{current}", f"yt--dlp-{latest}")
         replace(readme, f'alt="yt-dlp {current}"', f'alt="yt-dlp {latest}"')

@@ -2,7 +2,7 @@
   <img src="assets/icon.svg" alt="App icon: a music note inside a ring, with a download arrow underneath" width="128">
 </p>
 
-<h1 align="center">YT Music Playlist Downloader</h1>
+<h1 align="center">Songhaul</h1>
 
 <p align="center">
   A desktop app and a command-line script that download a YouTube or YouTube Music playlist, or a single song, as MP3 or M4A.<br>
@@ -32,11 +32,11 @@
 | **Download from the terminal** | [Install](#install), then [Usage](#usage): two commands and a link. |
 | **Know what ends up on disk** | [How it works](#how-it-works): file names, tags, skipped tracks and re-runs. |
 | **Download age-restricted or private videos** | [Browser cookies](#browser-cookies): use the session you are already signed in with. |
-| **Use it from your own Python code** | [Development](#development): the `ytmpd` package and its events. |
+| **Use it from your own Python code** | [Development](#development): the `songhaul` package and its events. |
 | **Something went wrong** | [Questions](#questions-people-ask): FFmpeg, gaps in the numbering, `NA` files, HTTP 403. |
 
 [How it works](#how-it-works) · [Download the app](#download-the-app) · [Desktop app](#desktop-app) · [Android app](#android-app) · [Install](#install) · [Usage](#usage) · [Browser cookies](#browser-cookies) ·
-[Development](#development) · [Roadmap](ROADMAP.md) · [Questions](#questions-people-ask)
+[Development](#development) · [Roadmap](docs/ROADMAP.md) · [Questions](#questions-people-ask)
 
 ## How it works
 
@@ -71,10 +71,11 @@ messages are in Italian.
 
 | | |
 |---|---|
-| **Where** | [Releases](https://github.com/FrancescoPazz/yt-music-playlist-downloader/releases/latest): `yt-music-playlist-downloader-windows-<version>.zip` for Windows, `yt-music-playlist-downloader-<version>.apk` for Android 7 or later. |
-| **On Windows** | Extract the zip anywhere and open `yt-music-playlist-downloader.exe`; Python, yt-dlp and FFmpeg are inside. The app isn't signed, so SmartScreen may say it protected your PC: **More info**, then **Run anyway**. The first start takes up to 40 seconds. |
+| **Where** | [Releases](https://github.com/FrancescoPazz/songhaul/releases/latest): `songhaul-windows-<version>.zip` for Windows, `songhaul-<version>.apk` for Android 7 or later. |
+| **On Windows** | Extract the zip anywhere and open `songhaul.exe`; Python, yt-dlp and FFmpeg are inside. The app isn't signed, so SmartScreen may say it protected your PC: **More info**, then **Run anyway**. The first start takes up to 40 seconds. |
 | **On the phone** | Download the `.apk` on the phone and open it. Android asks permission to install apps from that browser or file manager, and Play Protect may warn that the app is unknown because it doesn't come from the Play Store, which doesn't accept YouTube downloaders. |
 | **Updates** | At startup the app checks GitHub and says when a newer version is out. Every APK is signed with the same key, so a new one installs over the old one and keeps settings and history. On Windows, extract the new zip in place of the old folder: settings and history live in `%APPDATA%` and stay. |
+| **If you had YT Music Playlist Downloader** | It's the same app with a new name (0.6.0). The APK installs over the old one; on Windows the first start copies settings, history and `cookies.txt` from the old folder in `%APPDATA%`. The old Music folder stays in use if it exists, so nothing is downloaded twice. |
 | **How it's built** | Each `v*` tag runs [`release.yml`](.github/workflows/release.yml) on GitHub: tests, the Windows build, the signed APK and a new release with both files and their SHA-256. It takes about 15 minutes. Every Monday [`yt-dlp-update.yml`](.github/workflows/yt-dlp-update.yml) checks PyPI and, when yt-dlp has a new version, raises it, tags a patch release and starts the build: YouTube changes often, and an app can't update its own yt-dlp. |
 
 ## Desktop app
@@ -94,14 +95,14 @@ messages are in Italian.
 
 The app uses its own FFmpeg (from the `imageio-ffmpeg` package) when there is none on the PATH, so MP3 works without
 installing anything else. Settings and history are saved in
-`%APPDATA%\Francesco Pazzaglia\YT Music Playlist Downloader\data` by the packaged app, and in `.ytmpd` in your user
+`%APPDATA%\Francesco Pazzaglia\Songhaul\data` by the packaged app, and in `.songhaul` in your user
 folder when it runs from the source code.
 
 **On Windows**, see [Download the app](#download-the-app). **From the source code**, on any system:
 
 ```bash
 python -m pip install -r requirements.txt "flet[all]==1.1.2" imageio-ffmpeg
-python main.py              # with YTMPD_URL set to a playlist link, it loads that link right away
+python main.py              # with SONGHAUL_URL set to a playlist link, it loads that link right away
 ```
 
 The first start downloads the Flet window runtime once (about a minute).
@@ -117,20 +118,20 @@ PYTHONUTF8=1 flet build windows --yes   # output in build/windows, about 210 MB 
 
 | | |
 |---|---|
-| <img src="docs/screenshots/en/android-download.png" alt="Android Download screen: one track with a check mark, saved as M4A to Music/YT Music Playlist Downloader, navigation bar at the bottom" width="240"> | <img src="docs/screenshots/en/android-settings.png" alt="Android Settings: import a cookies.txt file, language, theme, and QuickJS as JavaScript runtime" width="240"> |
+| <img src="docs/screenshots/en/android-download.png" alt="Android Download screen: one track with a check mark, saved as M4A to Music/Songhaul, navigation bar at the bottom" width="240"> | <img src="docs/screenshots/en/android-settings.png" alt="Android Settings: import a cookies.txt file, language, theme, and QuickJS as JavaScript runtime" width="240"> |
 | *Download, laid out for a phone* | *Settings: cookies.txt instead of the browser* |
 
 The same app and screens, with what changes on a phone:
 
 | | On Android |
 |---|---|
-| **Format and folder** | M4A only (there's no FFmpeg on the phone), always in `Music/YT Music Playlist Downloader/<playlist>`, where music players find it. No storage permission is needed. |
-| **Getting the link** | In YouTube Music, **Share → YT Music Playlist Downloader**: the app opens with the playlist (or the song) loaded, or switches to it if it's already open. **Copy link** and then opening the app works too, through the clipboard. Playlist and song links can also be opened with the app if you turn on *Open supported links* for it in Android's app settings. |
+| **Format and folder** | M4A only (there's no FFmpeg on the phone), always in `Music/Songhaul/<playlist>`, where music players find it. No storage permission is needed. |
+| **Getting the link** | In YouTube Music, **Share → Songhaul**: the app opens with the playlist (or the song) loaded, or switches to it if it's already open. **Copy link** and then opening the app works too, through the clipboard. Playlist and song links can also be opened with the app if you turn on *Open supported links* for it in Android's app settings. |
 | **Restricted videos** | The browser's cookies can't be read on a phone: import a `cookies.txt` exported from a computer in **Settings**. |
 | **Long playlists** | The download runs as a foreground service with a notification, so it goes on with the screen off (the first time, Android asks to allow notifications). The app asks before downloading on mobile data. |
 | **JavaScript** | The app ships its own QuickJS-ng, so YouTube's challenges are solved on the phone too. |
 
-The APK is in [Releases](https://github.com/FrancescoPazz/yt-music-playlist-downloader/releases/latest) (see [Download the app](#download-the-app)). To build one yourself you need the
+The APK is in [Releases](https://github.com/FrancescoPazz/songhaul/releases/latest) (see [Download the app](#download-the-app)). To build one yourself you need the
 Android SDK and, on Windows, Developer Mode; the QuickJS wheels are already in `android/wheels`:
 
 ```bash
@@ -208,8 +209,8 @@ explains how to export cookies from a private window that stay valid longer.
 
 ## Development
 
-The code is in the `ytmpd` package: `core` does the work and prints nothing, `cli` is the command line on top of it.
-The [desktop app](#desktop-app) (`ytmpd/gui.py`) uses `core` the same way.
+The code is in the `songhaul` package: `core` does the work and prints nothing, `cli` is the command line on top of it.
+The [desktop app](#desktop-app) (`songhaul/gui.py`) uses `core` the same way.
 
 ```bash
 python -m venv .venv
@@ -220,7 +221,7 @@ python -m unittest            # tests, no network needed
 
 ```python
 import threading
-from ytmpd import core
+from songhaul import core
 
 cancel = threading.Event()        # cancel.set() from another thread stops the download
 result = core.download("https://music.youtube.com/playlist?list=...", "downloads", fmt="m4a",
@@ -245,11 +246,12 @@ in a few seconds, without downloading.
 
 | Path | Contents |
 |---|---|
-| `ytmpd/core.py` | Link normalization, yt-dlp options, playlist listing, download with events and cancel, M4A tags |
-| `ytmpd/cli.py` | Command-line options and the Italian messages |
-| `ytmpd/gui.py` | Desktop app: the three screens, background threads, settings and history files |
-| `ytmpd/update.py` | Asks GitHub for the latest release, for the update notice |
-| `ytmpd/i18n.py` | Italian and English text of the app; tests check both have the same keys |
+| `songhaul/core.py` | Link normalization, yt-dlp options, playlist listing, download with events and cancel, M4A tags |
+| `songhaul/cli.py` | Command-line options and the Italian messages |
+| `songhaul/gui.py` | Desktop app: the three screens, background threads, settings and history files |
+| `songhaul/update.py` | Asks GitHub for the latest release, for the update notice |
+| `songhaul/paths.py` | App name, data and music folders, and the copy of what versions before 0.6.0 left on disk |
+| `songhaul/i18n.py` | Italian and English text of the app; tests check both have the same keys |
 | `main.py` | Starts the desktop app |
 | `pyproject.toml` | App name, version and dependencies for `flet build` |
 | `downloader.py` | Two-line wrapper, so `python downloader.py` keeps working |
@@ -260,7 +262,8 @@ in a few seconds, without downloading.
 | `.github/workflows/release.yml` | Builds both apps and publishes a release on every `v*` tag; `.github/scripts/version.sh` sets the version |
 | `android/extension/` | `ytmpd_android`, a small Flet extension (Python + Dart, on top of the `receive_sharing_intent` and `flutter_foreground_task` plugins): the Share menu and the foreground service; `build_wheel.py` packs it |
 | `android/wheels/` | Those wheels, so building the APK doesn't need the NDK |
-| `ROADMAP.md` | Plan for the desktop and Android GUI app |
+| `docs/ROADMAP.md` | Plan for SoundCloud and Spotify links |
+| `ROADMAP.md` | The finished plan for the desktop and Android GUI app |
 | `DEVLOG.md` | What each phase found out, starting from the Android spike |
 | `spike/android/` | Throwaway Flet app used to test `ytmpd.core` on Android |
 | `assets/icon.svg` | App icon, also the logo of this README |

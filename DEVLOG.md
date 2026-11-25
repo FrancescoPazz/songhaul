@@ -1,5 +1,20 @@
 # Devlog
 
+## 2026-11-25 — Phase 0A: renamed to Songhaul
+
+- New plan in [`docs/ROADMAP.md`](docs/ROADMAP.md) (SoundCloud and Spotify links). Its first step is the name: the
+  package `ytmpd` is now `songhaul`, the app YT Music Playlist Downloader is Songhaul. Older entries keep the old names.
+- `bundle_id` goes in `[tool.flet]`, not only in the Android table: Flet otherwise derives it from `name`, and the data
+  folders on macOS and Linux depend on it as much as Android updates do. On Android the template turns its hyphens into
+  underscores, so the id stays `io.github.francescopazz.yt_music_playlist_downloader`.
+- Windows is the only system with the app's name in the data path (company/product): `paths.migrate()` copies the old
+  files once, with `settings.json` last as the mark. Without the mark, a `cookies.txt` removed in Settings would come
+  back at the next start. `paths.py` doesn't import Flet, which the test job on GitHub doesn't install.
+- Checked on the emulator: the new APK over 0.3.0 (same debug key) kept one app, its history and the old Music folder;
+  Sync said there was nothing new.
+- Building the APK while the emulator runs can use up Windows' virtual memory: the Gradle daemon died with 140 MB left.
+  `GRADLE_OPTS=-Dorg.gradle.jvmargs=-Xmx2g` is enough for this app (Flet's template asks for 8 GB).
+
 ## 2026-11-21 — Single songs
 
 - A song link (`watch?v=…`) already went through yt-dlp as a one-entry download, but its file was called

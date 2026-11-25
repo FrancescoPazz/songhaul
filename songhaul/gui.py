@@ -1,4 +1,4 @@
-"""GUI for desktop and Android (Flet): Download, History and Settings. ytmpd.core does the work in a thread."""
+"""GUI for desktop and Android (Flet): Download, History and Settings. songhaul.core does the work in a thread."""
 
 import hashlib
 import json
@@ -18,14 +18,16 @@ import flet as ft
 import yt_dlp
 from yt_dlp.utils import sanitize_filename
 
-from . import __version__, core, update
+from . import __version__, core, paths, update
 from .i18n import STRINGS, resolve_language
 
 SEED = "#E0475B"
-REPO = "https://github.com/FrancescoPazz/yt-music-playlist-downloader"
-DATA = Path(os.getenv("FLET_APP_STORAGE_DATA") or Path.home() / ".ytmpd")
+REPO = f"https://github.com/{update.REPO}"
+PACKAGED_DATA = os.getenv("FLET_APP_STORAGE_DATA")
+DATA = Path(PACKAGED_DATA or Path.home() / ".songhaul")
+paths.migrate(paths.old_data(DATA, packaged=bool(PACKAGED_DATA)), DATA)
 DEFAULTS = {
-    "folder": str(Path.home() / "Music" / "YT Music Playlist Downloader"),
+    "folder": str(paths.music_folder(Path.home() / "Music")),
     "format": "mp3",
     "bitrate": "192",
     "browser": "none",
@@ -38,7 +40,7 @@ HISTORY_LIMIT = 100
 COOKIES = DATA / "cookies.txt"
 # Android (see DEVLOG, phase 2): only M4A (no FFmpeg), files end up in the shared Music folder, while partial files
 # and the archive stay in app storage because Music/ refuses anything that isn't audio.
-ANDROID_MUSIC = Path("/storage/emulated/0/Music/YT Music Playlist Downloader")
+ANDROID_MUSIC = paths.music_folder(Path("/storage/emulated/0/Music"))
 ANDROID_PARTIAL = DATA / "partial"
 NAV = (
     (ft.Icons.DOWNLOAD_OUTLINED, ft.Icons.DOWNLOAD, "nav_download"),
@@ -124,7 +126,7 @@ class App:
             except ImportError:
                 pass
 
-        page.title = "YT Music Playlist Downloader"
+        page.title = paths.NAME
         page.window.width, page.window.height = 1000, 720
         page.window.min_width, page.window.min_height = 720, 520
         page.window.prevent_close = True
@@ -136,7 +138,7 @@ class App:
         self.apply_theme()
         self.render()
         # Not sys.argv: in the packaged app Flet's runner takes the first argument as the page URL.
-        start_link = os.getenv("YTMPD_URL") or link_from_route(page.route)
+        start_link = os.getenv("SONGHAUL_URL") or link_from_route(page.route)
         if start_link:
             self.open_link(start_link)
         else:
@@ -538,7 +540,7 @@ class App:
     def on_event(self, e):
         run, kind = self.run, e["type"]
         if kind in ("warning", "track_skipped"):  # to the console log (logcat on Android), for diagnosing
-            print(f"ytmpd {kind}: {e.get('message') or e.get('reason')}", flush=True)
+            print(f"songhaul {kind}: {e.get('message') or e.get('reason')}", flush=True)
         vid = e.get("id") or run["current"]
         if kind == "track_started":
             run["skipped"].pop(vid, None)  # a retry after a 403 clears the earlier failure

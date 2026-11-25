@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Kept so `python downloader.py URL` still works. The code lives in ytmpd/."""
+"""Kept so `python downloader.py URL` still works. The code lives in songhaul/."""
 
-from ytmpd.cli import main
+from songhaul.cli import main
 
 if __name__ == "__main__":
     raise SystemExit(main())

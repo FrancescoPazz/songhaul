@@ -2,6 +2,6 @@
 
 import flet as ft
 
-from ytmpd.gui import main
+from songhaul.gui import main
 
 ft.run(main, assets_dir="assets")

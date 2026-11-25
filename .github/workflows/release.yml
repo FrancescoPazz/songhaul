@@ -46,11 +46,11 @@ jobs:
             --build-version "${{ steps.version.outputs.number }}" --build-number "${{ github.run_number }}"
       - name: Zip
         shell: pwsh
-        run: Compress-Archive -Path build/windows/* -DestinationPath "yt-music-playlist-downloader-windows-${{ steps.version.outputs.label }}.zip"
+        run: Compress-Archive -Path build/windows/* -DestinationPath "songhaul-windows-${{ steps.version.outputs.label }}.zip"
       - uses: actions/upload-artifact@v4
         with:
           name: windows
-          path: yt-music-playlist-downloader-windows-*.zip
+          path: songhaul-windows-*.zip
 
   macos:
     needs: test
@@ -69,11 +69,11 @@ jobs:
           flet build macos --yes --no-rich-output \
             --build-version "${{ steps.version.outputs.number }}" --build-number "${{ github.run_number }}"
       - name: Zip
-        run: ditto -c -k --keepParent build/macos/*.app "yt-music-playlist-downloader-macos-${{ steps.version.outputs.label }}.zip"
+        run: ditto -c -k --keepParent build/macos/*.app "songhaul-macos-${{ steps.version.outputs.label }}.zip"
       - uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: yt-music-playlist-downloader-macos-*.zip
+          path: songhaul-macos-*.zip
 
   linux:
     needs: test
@@ -96,11 +96,11 @@ jobs:
           flet build linux --yes --no-rich-output \
             --build-version "${{ steps.version.outputs.number }}" --build-number "${{ github.run_number }}"
       - name: Archive
-        run: tar -czf "yt-music-playlist-downloader-linux-${{ steps.version.outputs.label }}.tar.gz" -C build linux
+        run: tar -czf "songhaul-linux-${{ steps.version.outputs.label }}.tar.gz" -C build linux
       - uses: actions/upload-artifact@v4
         with:
           name: linux
-          path: yt-music-playlist-downloader-linux-*.tar.gz
+          path: songhaul-linux-*.tar.gz
 
   android:
     needs: test
@@ -139,11 +139,11 @@ jobs:
             --android-signing-key-store "$RUNNER_TEMP/ytmpd.keystore" \
             --android-signing-key-store-password "$STORE_PASSWORD" \
             --android-signing-key-alias "$KEY_ALIAS" --android-signing-key-password "$KEY_PASSWORD"
-          cp build/apk/yt-music-playlist-downloader.apk "yt-music-playlist-downloader-${{ steps.version.outputs.label }}.apk"
+          cp build/apk/songhaul.apk "songhaul-${{ steps.version.outputs.label }}.apk"
       - uses: actions/upload-artifact@v4
         with:
           name: android
-          path: yt-music-playlist-downloader-*.apk
+          path: songhaul-*.apk
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -159,14 +159,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           prerelease=$([[ "$GITHUB_REF_NAME" == *-* ]] && echo --prerelease || true)  # v1.2.0-beta.1 → pre-release
-          gh release create "$GITHUB_REF_NAME" yt-music-playlist-downloader-* $prerelease \
+          gh release create "$GITHUB_REF_NAME" songhaul-* $prerelease \
             --title "$GITHUB_REF_NAME" --generate-notes \
-            --notes "**Windows**: download the .zip, extract it and open yt-music-playlist-downloader.exe.
+            --notes "**Windows**: download the .zip, extract it and open songhaul.exe.
           **Android**: download the .apk on the phone and open it; it installs over the previous version and keeps the history.
           **macOS** and **Linux**: extract the archive and open the app inside (not signed: on macOS, right-click it and choose Open the first time).
           See the [README](https://github.com/$GITHUB_REPOSITORY#download-the-app) for what Windows and Android say about apps from outside their stores.
 
           SHA-256:
           \`\`\`
-          $(sha256sum yt-music-playlist-downloader-*)
+          $(sha256sum songhaul-*)
           \`\`\`"
