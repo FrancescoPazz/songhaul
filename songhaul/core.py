@@ -129,7 +129,7 @@ def build_options(output_dir: str, fmt: str = "mp3", bitrate: str = "192", brows
     paths = {"home": str(output_dir)} | ({"temp": str(temp_dir)} if temp_dir else {})
     opts = _base_options(browser, cookies) | {
         "paths": paths,
-        "outtmpl": "%(playlist_index&{:03d} - |)s%(title)s.%(ext)s",  # a single song has no number
+        "outtmpl": "%(playlist_index&{:03d} - |)s%(file_name,title)s.%(ext)s",  # a single song has no number
         "download_archive": str(archive or archive_path(output_dir)),
         "ignoreerrors": True,
         "nooverwrites": True,
@@ -140,13 +140,11 @@ def build_options(output_dir: str, fmt: str = "mp3", bitrate: str = "192", brows
         opts["format"] = "bestaudio/best"
         opts["postprocessors"] = [
             {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": bitrate},
-            {"key": "FFmpegMetadata", "add_metadata": True, "add_chapters": False},
         ]
-        opts["postprocessor_args"] = {"default": ["-id3v2_version", "3"]}
         if ffmpeg := bundled_ffmpeg():
             opts["ffmpeg_location"] = ffmpeg  # its folder has no ffprobe; yt-dlp falls back to `ffmpeg -i`
     elif fmt == "m4a":
-        # The platform's own AAC stream, saved as is: no FFmpeg, no re-encoding. Tags come from Mp4Tags.
+        # The platform's own AAC stream, saved as is: no FFmpeg, no re-encoding. The Tags postprocessor tags it.
         opts["format"] = "bestaudio[ext=m4a]"
     else:
         raise ValueError(f"unknown format: {fmt}")
@@ -170,6 +168,12 @@ def clean_title(title: str) -> str:
     if ending and _is_noise(ending.group(1)):
         cleaned = cleaned[:ending.start()]
     return cleaned.strip() or title
+
+
+def name_with_artist(title: str, artist: str) -> str:
+    """"Artist - Title", unless the title already has the artist, as video titles often do."""
+    first = artist.split(",")[0].strip()
+    return title if not first or first.lower() in title.lower() else f"{artist} - {title}"
 
 
 def square_jpeg(data: bytes) -> bytes:
@@ -206,31 +210,55 @@ def embed_cover(path: str, jpeg: bytes):
         tags = ID3(path)
         tags.delall("APIC")
         tags.add(APIC(encoding=3, mime="image/jpeg", type=3, desc="Cover", data=jpeg))
-        tags.save(v2_version=3)  # keep ID3v2.3, the version older players read
+        tags.update_to_v23()
+        tags.save(v2_version=3)
 
 
 def tags_for(info: dict) -> dict:
-    """Title, artist and album as the platform reports them, falling back to the upload's own fields."""
+    """The tags every file gets, as the platform reports them, falling back to the upload's own fields."""
     tags = {
         "title": info.get("track") or info.get("title"),
         "artist": info.get("artist") or info.get("creator") or info.get("uploader") or info.get("channel"),
         "album": info.get("album"),
+        "track": info.get("playlist_index"),
+        "year": str(info.get("release_year") or info.get("release_date")
+                    or (source_of(info).upload_year and info.get("upload_date")) or "")[:4],
+        "genre": ", ".join(info.get("genres") or []),  # not "categories": YouTube's are kinds of video
     }
     return {k: v for k, v in tags.items() if v}
 
 
-class Mp4Tags(PostProcessor):
-    """Writes tags to M4A files with mutagen, and repairs them, so M4A works without FFmpeg (Android)."""
-
-    def run(self, info):
+def write_tags(path: str, tags: dict):
+    if path.endswith(".m4a"):
         from mutagen.mp4 import MP4
 
-        keys = {"title": "\xa9nam", "artist": "\xa9ART", "album": "\xa9alb"}
-        mp4.single_index(info["filepath"])
-        audio = MP4(info["filepath"])
-        for name, value in tags_for(info).items():
-            audio[keys[name]] = [value]
+        keys = {"title": "\xa9nam", "artist": "\xa9ART", "album": "\xa9alb", "track": "trkn", "year": "\xa9day",
+                "genre": "\xa9gen"}
+        audio = MP4(path)
+        if audio.tags is not None:  # from scratch, like the MP3: the source can bring its own comments
+            audio.tags.clear()
+        for name, value in tags.items():
+            audio[keys[name]] = [(value, 0)] if name == "track" else [value]
         audio.save()
+    else:
+        from mutagen import id3
+
+        frames = {"title": id3.TIT2, "artist": id3.TPE1, "album": id3.TALB, "track": id3.TRCK, "year": id3.TDRC,
+                  "genre": id3.TCON}
+        new = id3.ID3()  # from scratch: FFmpeg copies the source's technical fields
+        for name, value in tags.items():
+            new.add(frames[name](encoding=3, text=str(value)))
+        new.update_to_v23()
+        new.save(path, v2_version=3)  # ID3v2.3 is the version Windows Explorer and older players read
+
+
+class Tags(PostProcessor):
+    """Writes the tags with mutagen, the same for MP3 and M4A, and repairs M4A files made without FFmpeg."""
+
+    def run(self, info):
+        if info["filepath"].endswith(".m4a"):
+            mp4.single_index(info["filepath"])
+        write_tags(info["filepath"], tags_for(info))
         return [], info
 
 
@@ -294,15 +322,20 @@ class _Logger:
 class _Current(PostProcessor):
     """Runs before each video is downloaded and remembers it, so errors without an id can be attributed."""
 
-    def __init__(self, logger, clean=False):
+    def __init__(self, logger, clean=False, artist_names=False):
         super().__init__()
         self.logger = logger
-        self.clean = clean  # runs before the file name is made, so a clean title also gives a clean file name
+        self.clean, self.artist_names = clean, artist_names  # this runs before the file name is made
 
     def run(self, info):
         source_of(info).prepare(info)
         if self.clean:
-            info["title"] = clean_title(info.get("title") or "")
+            title = info.get("title") or ""
+            info["title"] = clean_title(title)
+            if info.get("track") == title:
+                info["track"] = info["title"]
+        if self.artist_names:
+            info["file_name"] = name_with_artist(info.get("title") or "", info.get("artist") or "")
         self.logger.current = {"id": info.get("id"), "title": info.get("title")}
         return [], info
 
@@ -338,7 +371,7 @@ def list_playlist(url: str, browser: str = "none", cookies: str | None = None) -
 def download(url: str, output_dir: str = "downloads", fmt: str = "mp3", bitrate: str = "192",
              browser: str = "none", items: str | None = None, on_event=lambda e: None, cancel=None,
              cookies: str | None = None, temp_dir: str | None = None, archive: str | None = None,
-             covers: bool = False, clean_titles: bool = False) -> dict:
+             covers: bool = False, clean_titles: bool = False, artist_names: bool = False) -> dict:
     """Download the playlist, or the single song, into output_dir. Tracks already in the folder's archive are skipped.
 
     on_event gets dicts with "type": track_started, progress, track_done, track_skipped, warning, finished.
@@ -387,10 +420,9 @@ def download(url: str, output_dir: str = "downloads", fmt: str = "mp3", bitrate:
     }
     cancelled = False
     with yt_dlp.YoutubeDL(opts) as ydl:
-        ydl.add_post_processor(_Current(logger, clean_titles), when="pre_process")
-        if fmt == "m4a":
-            ydl.add_post_processor(Mp4Tags(), when="post_process")
-        if covers:  # after the tags, so FFmpegMetadata (MP3) doesn't rewrite the file without the picture
+        ydl.add_post_processor(_Current(logger, clean_titles, artist_names), when="pre_process")
+        ydl.add_post_processor(Tags(), when="post_process")
+        if covers:  # after the tags, which are written from scratch
             ydl.add_post_processor(Covers(), when="post_process")
         ydl.add_post_processor(_Events(emit), when="after_move")
         # YouTube sometimes answers the first request with HTTP 403 and the same request works a moment later.

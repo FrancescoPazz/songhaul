@@ -35,6 +35,7 @@ DEFAULTS = {
     "theme": "system",
     "covers": True,
     "clean_titles": False,
+    "artist_names": False,
 }
 HISTORY_LIMIT = 100
 COOKIES = DATA / "cookies.txt"
@@ -511,7 +512,8 @@ class App:
                                    self.settings["browser"], items, on_event=self.on_event, cancel=self.cancel,
                                    cookies=self.cookies(), temp_dir=str(ANDROID_PARTIAL) if self.mobile else None,
                                    archive=str(archive), covers=self.settings["covers"],
-                                   clean_titles=self.settings["clean_titles"])
+                                   clean_titles=self.settings["clean_titles"],
+                                   artist_names=self.settings["artist_names"])
         except Exception as ex:
             self.last_line = self.t("download_failed", reason=self.reason(core.reason_kind(str(ex))))
             self.remember_error(str(ex))
@@ -644,6 +646,8 @@ class App:
                       on_change=lambda e: self.set_setting("covers", e.control.value)),
             ft.Switch(label=self.t("clean_titles"), value=self.settings["clean_titles"], disabled=self.downloading,
                       on_change=lambda e: self.set_setting("clean_titles", e.control.value)),
+            ft.Switch(label=self.t("artist_names"), value=self.settings["artist_names"], disabled=self.downloading,
+                      on_change=lambda e: self.set_setting("artist_names", e.control.value)),
             ft.Text(self.t("files_help"), color=ft.Colors.ON_SURFACE_VARIANT))
         return ft.ListView([
             files,

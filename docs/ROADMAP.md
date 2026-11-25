@@ -1,7 +1,6 @@
 # Roadmap: from YouTube to several platforms
 
-Status: **phases 0A, 0B and 1 done** (25 November 2026), phase 4 next. Phases 2 and 3 (Spotify) are
-[on hold](#decisions).
+Status: **phases 0A, 0B, 1 and 4 done** (26 November 2026). Phases 2 and 3 (Spotify) are [on hold](#decisions).
 
 Goal: start from a link to a song or a playlist on YouTube, SoundCloud or Spotify and get audio files with consistent
 names, tags and covers. It applies to the CLI, the desktop app and the Android app.
@@ -19,7 +18,7 @@ Spotify, searched on a supported source.
 | [1. SoundCloud](#phase-1--soundcloud) ✅ | Tracks and sets, with titles; previews and DRM recognised | 0.7.0 |
 | [2. Spotify, tracks](#phase-2--spotify-single-tracks) ⏸ | A Spotify link becomes the right song, or an honest "not found" | 0.8.0 |
 | [3. Spotify, playlists](#phase-3--spotify-playlists) ⏸ | Playlists and albums, with a review of doubtful matches | 0.9.0 |
-| [4. Polish](#phase-4--polish) | Unified tags, clear errors, documentation | 1.0.0 |
+| [4. Polish](#phase-4--polish) ✅ | Unified tags, clear errors, documentation | 1.0.0 |
 
 ---
 
@@ -438,11 +437,11 @@ Android emulator, release with a tag. Network checks live in a manual script, ne
 | **D5** | Keep the old Music folder for those who already have the app? | **Yes**, so nothing is downloaded again |
 | **D8** | The old `ROADMAP.md`, and the language of this one? | **A note at the top** of the old one; this one **in English** like the other documents |
 | **D7** | SoundCloud tracks with DRM: skipped, or searched on YouTube Music? | **Skipped** in phase 1, with the reason; matching can be added after phase 2 |
+| **D6** | `Artist - Title` for YouTube and SoundCloud too? | **As an option**, off by default, and only when the title doesn't have the artist already |
 | **D2** | Spotify: go on, knowing the limits and the terms, or stop at SoundCloud? | **Stop at SoundCloud** for now; phases 2 and 3 stay here as a plan |
 
 ### Open
 
 | | Question | Recommendation |
 |---|---|---|
-| **D6** | `Artist - Title` for YouTube and SoundCloud too? | Not until phase 4, then as an option |
 | **D3** | If Spotify comes back: Tags and cover of Spotify songs: from the song found on YouTube Music or from Spotify? | From YouTube Music: consistent with the YouTube source, less code, less friction with the terms |

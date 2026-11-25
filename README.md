@@ -32,11 +32,11 @@
 | **Download from the terminal** | [Install](#install), then [Usage](#usage): two commands and a link. |
 | **Know what ends up on disk** | [How it works](#how-it-works): file names, tags, skipped tracks and re-runs. |
 | **Download age-restricted or private videos** | [Browser cookies](#browser-cookies): use the session you are already signed in with. |
-| **Download from SoundCloud** | [SoundCloud](#soundcloud): what works and what can't be downloaded. |
+| **Know which sites work** | [Platforms](#platforms): what works, and what can't be downloaded. |
 | **Use it from your own Python code** | [Development](#development): the `songhaul` package and its events. |
 | **Something went wrong** | [Questions](#questions-people-ask): FFmpeg, gaps in the numbering, `NA` files, HTTP 403. |
 
-[How it works](#how-it-works) · [SoundCloud](#soundcloud) · [Download the app](#download-the-app) · [Desktop app](#desktop-app) · [Android app](#android-app) · [Install](#install) · [Usage](#usage) · [Browser cookies](#browser-cookies) ·
+[How it works](#how-it-works) · [Platforms](#platforms) · [Download the app](#download-the-app) · [Desktop app](#desktop-app) · [Android app](#android-app) · [Install](#install) · [Usage](#usage) · [Browser cookies](#browser-cookies) ·
 [Development](#development) · [Roadmap](docs/ROADMAP.md) · [Questions](#questions-people-ask)
 
 ## How it works
@@ -50,7 +50,7 @@ best available audio of each video and saves it as MP3 or M4A.
 | **2. Link** | A link from `music.youtube.com` or `youtube.com` with a `list=` parameter becomes `https://www.youtube.com/playlist?list=…`, so a link copied from a song playing inside the playlist works too. A song link (`watch?v=…`) downloads just that song, also when it's playing inside a radio mix (`list=RD…`), which never ends. |
 | **3. Download** | Takes the best audio stream. YouTube hides its streams behind a JavaScript challenge: yt-dlp solves it with Deno, Node.js, QuickJS or Bun, whichever is installed. |
 | **4. Convert** | **MP3**: FFmpeg converts the audio at the bitrate you chose (192 kbps unless you say otherwise). **M4A**: the site's own AAC stream is saved as it is, with no conversion and no quality lost. |
-| **5. Tag** | Title and artist (and album, when YouTube Music knows it). MP3s get ID3v2.3 tags, the version Windows Explorer and older players read. Optionally the cover art (the video thumbnail, cropped square) and a clean title without "(Official Video)" and the like. |
+| **5. Tag** | The same tags in MP3 and M4A, from every platform: title, artist, album, position in the playlist as track number, year of release (on SoundCloud, of upload if that's all there is) and genre, when there is one. MP3s get ID3v2.3 tags, the version Windows Explorer and older players read. Optionally the cover art, cropped square, a clean title (`--clean-titles`) and the artist in the file name (`--artist-names`). |
 | **6. Skip** | A video that is deleted, private or blocked in your country is skipped and the rest of the playlist goes on. |
 | **7. Remember** | Each downloaded track is written to `.ytmpd-archive.txt` in the output folder. Running the same playlist again downloads only the tracks added since. |
 
@@ -68,7 +68,17 @@ downloads/
 For each track the terminal shows the title, then percentage, speed and time left, then the saved file name. The
 messages are in Italian.
 
-## SoundCloud
+## Platforms
+
+| | Songs | Playlists | Not supported |
+|---|---|---|---|
+| **YouTube, YouTube Music** | Yes | Yes, also private ones with your cookies | Endless radio mixes (the song they start from is downloaded) |
+| **SoundCloud** | Yes | Sets, also secret links | DRM and Go+ tracks, profiles, likes, stations |
+| **Spotify** | No | No | Its audio is protected by DRM. Why a search elsewhere is on hold is in the [roadmap](docs/ROADMAP.md#spotify) |
+
+Links of other sites are handed to yt-dlp as they are: they may work, without promises.
+
+### SoundCloud
 
 Tracks and sets work like songs and playlists, including `on.soundcloud.com` short links. Profiles, likes and stations
 don't: the link has to be a track or a set.
@@ -106,7 +116,7 @@ don't: the link has to be a track or a set.
 |---|---|
 | **Download** | The link field, filled in from the clipboard when it holds a YouTube or SoundCloud link. **Load** lists the tracks with position and duration; tick the ones you want. Tracks already in the destination folder are marked and left out. Format, MP3 quality and folder sit at the bottom; each playlist gets its own subfolder, a single song goes straight into the folder. During the download every track shows its progress, then a check mark or a red icon whose tooltip says why it was skipped. **Cancel** stops after the current chunk. |
 | **History** | The last 100 downloads: playlist, date, format, folder, how many tracks were saved and which were skipped, with the reason. **Open folder**, **Load again**, and **Sync**, which loads the playlist and downloads only the tracks added since. |
-| **Settings** | Cover art in the files (on by default) and clean titles (off), browser cookies (see [Browser cookies](#browser-cookies)) or a `cookies.txt` file, language (Italian, English or the system's), theme (light, dark or the system's), the versions of yt-dlp, FFmpeg and the JavaScript runtime in use, and **Report a problem**: it copies those versions and the last errors (no links) and opens a new GitHub issue with them. |
+| **Settings** | Cover art in the files (on by default), clean titles and artist in the file name (off), browser cookies (see [Browser cookies](#browser-cookies)) or a `cookies.txt` file, language (Italian, English or the system's), theme (light, dark or the system's), the versions of yt-dlp, FFmpeg and the JavaScript runtime in use, and **Report a problem**: it copies those versions and the last errors (no links) and opens a new GitHub issue with them. |
 
 The app uses its own FFmpeg (from the `imageio-ffmpeg` package) when there is none on the PATH, so MP3 works without
 installing anything else. Settings and history are saved in
@@ -195,6 +205,7 @@ python downloader.py "https://soundcloud.com/artist/sets/name"
 | `--items` | positions, e.g. `1,3,5-8` | all | Download only these tracks. |
 | `--list` | | | Print the tracks with their position and duration, without downloading. |
 | `--covers` | | off | Embed the cover (for videos, the thumbnail), cropped square (cropping needs Pillow). |
+| `--artist-names` | | off | Put the artist in the file name, unless the title already has it. |
 | `--clean-titles` | | off | Drop "(Official Video)", "[VISUALIZER]" and the like from titles and file names; "(Remix)", "(feat. …)" stay. |
 
 ```bash
@@ -250,11 +261,11 @@ result = core.download("https://music.youtube.com/playlist?list=...", "downloads
 | `track_started` | `index`, `title` | The first bytes of a track arrive |
 | `progress` | `index`, `percent`, `speed` (bytes/s), `eta` (s) | Several times per second while downloading; any of them can be `None` |
 | `track_done` | `index`, `title`, `path` | The file is in its final place, tagged |
-| `track_skipped` | `reason` | yt-dlp gave up on a video |
+| `track_skipped` | `id`, `title`, `reason` (yt-dlp's message), `kind` (see `core.reason_kind()`) | A track couldn't be downloaded; the others go on |
 | `warning` | `message` | yt-dlp warned about something, e.g. no JavaScript runtime |
 | `finished` | `done`, `skipped`, `cancelled` | Always last; also the return value |
 
-`core.list_playlist(url)` returns the playlist title and its tracks (`index`, `id`, `title`, `duration`, `thumbnail`)
+`core.list_playlist(url)` returns the playlist title and its tracks (`index`, `id`, `title`, `duration`, `thumbnail`, `problem`: why it can't be downloaded, if known)
 in a few seconds, without downloading.
 
 <details>
@@ -262,7 +273,7 @@ in a few seconds, without downloading.
 
 | Path | Contents |
 |---|---|
-| `songhaul/core.py` | yt-dlp options, playlist listing, download with events and cancel, M4A tags |
+| `songhaul/core.py` | yt-dlp options, playlist listing, download with events and cancel, tags, covers |
 | `songhaul/sources/` | One file per platform: which links are its own, their normal form, its errors |
 | `songhaul/cli.py` | Command-line options and the Italian messages |
 | `songhaul/gui.py` | Desktop app: the three screens, background threads, settings and history files |
@@ -274,9 +285,10 @@ in a few seconds, without downloading.
 | `pyproject.toml` | App name, version and dependencies for `flet build` |
 | `downloader.py` | Two-line wrapper, so `python downloader.py` keeps working |
 | `tests/` | Tests for links, options and tags (`python -m unittest`) |
-| `requirements.txt` | `yt-dlp[default]`, which brings `yt-dlp-ejs` (the JavaScript challenge solver) and `mutagen` (M4A tags) |
+| `requirements.txt` | `yt-dlp[default]`, which brings `yt-dlp-ejs` (the JavaScript challenge solver) and `mutagen` (tags) |
 | `android/qjs/build_wheels.py` | Builds QuickJS-ng for Android with the NDK and wraps it in the `ytmpd-qjs` wheels |
 | `.github/workflows/yt-dlp-update.yml` | Weekly: a new yt-dlp means a new patch release; `.github/scripts/bump_ytdlp.py` updates the files |
+| `.github/workflows/tests.yml` | Runs the tests on every push |
 | `.github/workflows/release.yml` | Builds both apps and publishes a release on every `v*` tag; `.github/scripts/version.sh` sets the version |
 | `android/extension/` | `ytmpd_android`, a small Flet extension (Python + Dart, on top of the `receive_sharing_intent` and `flutter_foreground_task` plugins): the Share menu and the foreground service; `build_wheel.py` packs it |
 | `android/wheels/` | Those wheels, so building the APK doesn't need the NDK |
@@ -296,8 +308,9 @@ in a few seconds, without downloading.
 | You want to change | Look at |
 |---|---|
 | File name pattern | `outtmpl` in `core.build_options()`. The fields are [yt-dlp's output template](https://github.com/yt-dlp/yt-dlp#output-template) ones. |
-| Which tags are written | `core.tags_for()` for M4A; the `FFmpegMetadata` postprocessor for MP3. |
-| Embedding the cover art | `writethumbnail` in `core.build_options()`, plus the `EmbedThumbnail` postprocessor. |
+| Which tags are written | `core.tags_for()` and `core.write_tags()`. |
+| Embedding the cover art | The `Covers` postprocessor and `square_jpeg()` in `core.py`. |
+| A platform's links and errors | Its file in `sources/`. |
 | Supported browsers and formats | `BROWSERS` and `FORMATS` at the top of `core.py`. |
 
 </details>

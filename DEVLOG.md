@@ -1,5 +1,20 @@
 # Devlog
 
+## 2026-11-26 — Phase 4: the same tags everywhere
+
+- One tag writer (`core.write_tags()`, mutagen) instead of FFmpeg for MP3 and mutagen for M4A. Both formats now get title,
+  artist, album, track number (position in the playlist), year and genre, and nothing else: the MP3 used to carry the
+  whole description, the link and FFmpeg's technical fields, the M4A had no number, year or genre.
+- mutagen turns a v2.3 year into a v2.4 one when it reads a file: `embed_cover()` wrote it back into a v2.3 tag. Both
+  writers now call `update_to_v23()`.
+- The year is the release's. When that isn't known, SoundCloud's upload year stands in; YouTube's doesn't, since an
+  old song's video is often years younger (the MP3 used to get it).
+- Option "Artist in the file name" (`--artist-names`). A channel isn't taken for an artist.
+- `youtu.be` links are normalised like the others (a mix becomes its song). "This video is unavailable" has its reason.
+- The CLI explains errors in plain words, as the app does, followed by yt-dlp's message.
+- `tests.yml` runs the tests on every push, on Python 3.10 and 3.13.
+- Checked by reading the tags back from real files: a YouTube song and playlist, a SoundCloud set, both formats.
+
 ## 2026-11-25 — Phase 1: SoundCloud
 
 - M4A without FFmpeg, tried first: each 10-second segment has its own index (`sidx`) and Android believes the first, so

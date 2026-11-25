@@ -55,6 +55,8 @@ class SoundCloud(Source):
         return info
 
     def prepare(self, info: dict) -> None:
+        if not info.get("artist") and info.get("uploader"):
+            info["artist"] = info["uploader"]
         formats = info.get("formats") or []
         whole = [f for f in formats if not f["format_id"].endswith("_preview")]
         if formats and not whole:  # it would be saved, and remembered, as if it were the song

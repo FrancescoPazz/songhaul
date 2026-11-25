@@ -16,6 +16,7 @@ class Source:
     hosts = frozenset()
     reasons = ()  # (kind, phrases) found in this platform's errors, most specific first
     cookie_domain = None
+    upload_year = True  # when the release isn't known, is the upload's year the song's?
 
     def matches(self, url: str) -> bool:
         """The host is compared whole: youtube.com.example.it is another site. Text around the link is a no."""

@@ -10,6 +10,11 @@ from . import core
 from .i18n import STRINGS
 
 
+def explain(message):
+    """The reason in plain words, then yt-dlp's own message."""
+    return f"{STRINGS['it']['reason_' + core.reason_kind(message)]}\n    {message}"
+
+
 def print_event(e):
     kind = e["type"]
     if kind == "track_started":
@@ -23,7 +28,7 @@ def print_event(e):
     elif kind == "track_done":
         print(f"\n  Salvato: {Path(e['path']).name}")
     elif kind == "track_skipped":
-        print(f"\n  Saltato: {e['reason']}", file=sys.stderr)
+        print(f"\n  Saltato: {e['title'] or e['id'] or ''} {explain(e['reason'])}", file=sys.stderr)
     elif kind == "warning":
         print(f"\n  Attenzione: {e['message']}", file=sys.stderr)
     elif kind == "finished":
@@ -48,13 +53,15 @@ def main(argv=None):
     parser.add_argument("--covers", action="store_true", help="Inserisce la copertina nel file")
     parser.add_argument("--clean-titles", action="store_true",
                         help="Toglie \"(Official Video)\", \"[VISUALIZER]\" e simili da titolo e nome del file")
+    parser.add_argument("--artist-names", action="store_true",
+                        help="Mette l'artista nel nome del file, se il titolo non lo contiene già")
     args = parser.parse_args(argv)
 
     if args.list:
         try:
             playlist = core.list_playlist(args.url, args.browser)
         except Exception as exc:
-            print(f"Errore: {exc}", file=sys.stderr)
+            print(f"Errore: {explain(str(exc))}", file=sys.stderr)
             return 1
         print(playlist["title"] or "")
         for t in playlist["tracks"]:
@@ -71,7 +78,7 @@ def main(argv=None):
     try:
         link = core.normalize_url(args.url)
     except ValueError as exc:
-        print(f"Errore: {exc}", file=sys.stderr)
+        print(f"Errore: {explain(str(exc))}", file=sys.stderr)
         return 1
     print(f"Link:     {link}")
     print(f"Output:   {Path(args.output).resolve()}")
@@ -83,8 +90,9 @@ def main(argv=None):
 
     try:
         result = core.download(args.url, args.output, args.format, args.bitrate, args.browser, args.items,
-                               on_event=print_event, covers=args.covers, clean_titles=args.clean_titles)
+                               on_event=print_event, covers=args.covers, clean_titles=args.clean_titles,
+                               artist_names=args.artist_names)
     except Exception as exc:
-        print(f"\nErrore: {exc}", file=sys.stderr)
+        print(f"\nErrore: {explain(str(exc))}", file=sys.stderr)
         return 1
     return 1 if result["skipped"] else 0

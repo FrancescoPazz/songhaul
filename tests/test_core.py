@@ -12,6 +12,14 @@ class NormalizeUrl(unittest.TestCase):
         self.assertEqual(core.normalize_url("https://www.youtube.com/watch?v=abc&list=PL123&index=4"),
                          "https://www.youtube.com/playlist?list=PL123")
 
+    def test_short_links(self):
+        self.assertEqual(core.normalize_url("https://youtu.be/abc?si=x"), "https://www.youtube.com/watch?v=abc")
+        self.assertEqual(core.normalize_url("https://youtu.be/abc?list=PL123&si=x"),
+                         "https://www.youtube.com/playlist?list=PL123")
+        self.assertEqual(core.normalize_url("https://youtu.be/abc?list=RDabc"), "https://www.youtube.com/watch?v=abc")
+        self.assertTrue(core.is_playlist_url("https://youtu.be/abc?list=PL123"))
+        self.assertEqual(core.normalize_url("https://youtu.be/"), "https://youtu.be/")
+
     def test_single_video(self):
         url = "https://www.youtube.com/watch?v=abc"
         self.assertEqual(core.normalize_url(url), url)
@@ -31,10 +39,10 @@ class NormalizeUrl(unittest.TestCase):
 
 
 class BuildOptions(unittest.TestCase):
-    def test_mp3_converts_and_tags(self):
+    def test_mp3_converts(self):
         opts = core.build_options("out", "mp3", "320")
         keys = [pp["key"] for pp in opts["postprocessors"]]
-        self.assertEqual(keys, ["FFmpegExtractAudio", "FFmpegMetadata"])
+        self.assertEqual(keys, ["FFmpegExtractAudio"])
         self.assertEqual(opts["postprocessors"][0]["preferredquality"], "320")
 
     def test_m4a_needs_no_ffmpeg(self):
@@ -112,6 +120,7 @@ class Reasons(unittest.TestCase):
             "country": "region",
             "[youtube] abcdefghijk: Video unavailable. This video is no longer available because the YouTube "
             "account associated with this video has been terminated.": "unavailable",
+            "[youtube] abcdefghijk: This video is unavailable": "unavailable",
             "[youtube] abcdefghijk: Join this channel to get access to members-only content like this video": "members",
             "unable to download video data: HTTP Error 403: Forbidden": "forbidden",
             "[youtube] abcdefghijk: Unable to download webpage: <urlopen error [Errno 11001] getaddrinfo failed>":

@@ -20,23 +20,27 @@ class YouTube(Source):
     platform = "youtube"
     hosts = frozenset({"youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be"})
     cookie_domain = "youtube.com"
+    upload_year = False  # an old song's video is often years younger than the song
     reasons = (
         ("age", ("confirm your age", "age-restricted", "inappropriate for some users")),
         ("bot", ("not a bot",)),
         ("private", ("private video",)),
         ("members", ("members-only", "join this channel", "premium")),
         ("region", ("in your country", "geo restrict")),
-        ("unavailable", ("video unavailable", "has been removed", "is not available", "account associated")),
+        ("unavailable", ("video unavailable", "video is unavailable", "has been removed", "is not available",
+                         "account associated")),
     )
 
     def normalize(self, url: str) -> str:
         """A link with list= becomes the plain playlist link, a song the plain video link. A song playing inside a
         radio mix is the song: the mix never ends."""
         parsed = urlparse(url)
-        if parsed.netloc not in self.hosts - {"youtu.be"}:
+        if parsed.netloc not in self.hosts:
             return url
         query = parse_qs(parsed.query)
         playlist_id, video_id = query.get("list", [None])[0], query.get("v", [None])[0]
+        if parsed.netloc == "youtu.be":
+            video_id = parsed.path.strip("/")
         if playlist_id and not (video_id and is_mix(playlist_id)):
             return f"https://www.youtube.com/playlist?list={playlist_id}"
         if video_id:
