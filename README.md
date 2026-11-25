@@ -5,7 +5,7 @@
 <h1 align="center">Songhaul</h1>
 
 <p align="center">
-  A desktop app and a command-line script that download a YouTube or YouTube Music playlist, or a single song, as MP3 or M4A.<br>
+  A desktop app and a command-line script that download a playlist, or a single song, from YouTube, YouTube Music or SoundCloud as MP3 or M4A.<br>
   It numbers the files in playlist order, writes the tags, remembers what it already downloaded and can use your browser's session for restricted videos.
 </p>
 
@@ -32,10 +32,11 @@
 | **Download from the terminal** | [Install](#install), then [Usage](#usage): two commands and a link. |
 | **Know what ends up on disk** | [How it works](#how-it-works): file names, tags, skipped tracks and re-runs. |
 | **Download age-restricted or private videos** | [Browser cookies](#browser-cookies): use the session you are already signed in with. |
+| **Download from SoundCloud** | [SoundCloud](#soundcloud): what works and what can't be downloaded. |
 | **Use it from your own Python code** | [Development](#development): the `songhaul` package and its events. |
 | **Something went wrong** | [Questions](#questions-people-ask): FFmpeg, gaps in the numbering, `NA` files, HTTP 403. |
 
-[How it works](#how-it-works) · [Download the app](#download-the-app) · [Desktop app](#desktop-app) · [Android app](#android-app) · [Install](#install) · [Usage](#usage) · [Browser cookies](#browser-cookies) ·
+[How it works](#how-it-works) · [SoundCloud](#soundcloud) · [Download the app](#download-the-app) · [Desktop app](#desktop-app) · [Android app](#android-app) · [Install](#install) · [Usage](#usage) · [Browser cookies](#browser-cookies) ·
 [Development](#development) · [Roadmap](docs/ROADMAP.md) · [Questions](#questions-people-ask)
 
 ## How it works
@@ -48,7 +49,7 @@ best available audio of each video and saves it as MP3 or M4A.
 | **1. Check** | For MP3, stops with exit code 2 if `ffmpeg` is not on the PATH, before downloading anything. |
 | **2. Link** | A link from `music.youtube.com` or `youtube.com` with a `list=` parameter becomes `https://www.youtube.com/playlist?list=…`, so a link copied from a song playing inside the playlist works too. A song link (`watch?v=…`) downloads just that song, also when it's playing inside a radio mix (`list=RD…`), which never ends. |
 | **3. Download** | Takes the best audio stream. YouTube hides its streams behind a JavaScript challenge: yt-dlp solves it with Deno, Node.js, QuickJS or Bun, whichever is installed. |
-| **4. Convert** | **MP3**: FFmpeg converts the audio at the bitrate you chose (192 kbps unless you say otherwise). **M4A**: YouTube's own AAC stream is saved as it is, with no conversion and no quality lost. |
+| **4. Convert** | **MP3**: FFmpeg converts the audio at the bitrate you chose (192 kbps unless you say otherwise). **M4A**: the site's own AAC stream is saved as it is, with no conversion and no quality lost. |
 | **5. Tag** | Title and artist (and album, when YouTube Music knows it). MP3s get ID3v2.3 tags, the version Windows Explorer and older players read. Optionally the cover art (the video thumbnail, cropped square) and a clean title without "(Official Video)" and the like. |
 | **6. Skip** | A video that is deleted, private or blocked in your country is skipped and the rest of the playlist goes on. |
 | **7. Remember** | Each downloaded track is written to `.ytmpd-archive.txt` in the output folder. Running the same playlist again downloads only the tracks added since. |
@@ -66,6 +67,20 @@ downloads/
 
 For each track the terminal shows the title, then percentage, speed and time left, then the saved file name. The
 messages are in Italian.
+
+## SoundCloud
+
+Tracks and sets work like songs and playlists, including `on.soundcloud.com` short links. Profiles, likes and stations
+don't: the link has to be a track or a set.
+
+| | |
+|---|---|
+| **Tracks with DRM** | Many commercial tracks are streamed encrypted. They can't be downloaded and are skipped with the reason; in the app they're marked as soon as the set is loaded. Getting around DRM is out of the question here. |
+| **Go+ tracks** | Without a subscription SoundCloud sends only 30 seconds. They're skipped too, rather than saved as if they were the song. |
+| **Private tracks and sets** | Use the secret link (the one ending in `/s-…`). |
+| **With your account** | Browser cookies or a `cookies.txt` of soundcloud.com are passed to yt-dlp, which can then use your subscription. Not tested by us with a Go+ account. |
+| **Quality** | AAC at 96 or 160 kbps, which M4A keeps as it is. A 320 kbps MP3 only makes the file bigger. |
+| **Tags** | Title, artist, the set as album, and the cover art. |
 
 ## Download the app
 
@@ -89,7 +104,7 @@ messages are in Italian.
 
 | Screen | What is on it |
 |---|---|
-| **Download** | The link field, filled in from the clipboard when it holds a YouTube link. **Load** lists the tracks with position and duration; tick the ones you want. Tracks already in the destination folder are marked and left out. Format, MP3 quality and folder sit at the bottom; each playlist gets its own subfolder, a single song goes straight into the folder. During the download every track shows its progress, then a check mark or a red icon whose tooltip says why it was skipped. **Cancel** stops after the current chunk. |
+| **Download** | The link field, filled in from the clipboard when it holds a YouTube or SoundCloud link. **Load** lists the tracks with position and duration; tick the ones you want. Tracks already in the destination folder are marked and left out. Format, MP3 quality and folder sit at the bottom; each playlist gets its own subfolder, a single song goes straight into the folder. During the download every track shows its progress, then a check mark or a red icon whose tooltip says why it was skipped. **Cancel** stops after the current chunk. |
 | **History** | The last 100 downloads: playlist, date, format, folder, how many tracks were saved and which were skipped, with the reason. **Open folder**, **Load again**, and **Sync**, which loads the playlist and downloads only the tracks added since. |
 | **Settings** | Cover art in the files (on by default) and clean titles (off), browser cookies (see [Browser cookies](#browser-cookies)) or a `cookies.txt` file, language (Italian, English or the system's), theme (light, dark or the system's), the versions of yt-dlp, FFmpeg and the JavaScript runtime in use, and **Report a problem**: it copies those versions and the last errors (no links) and opens a new GitHub issue with them. |
 
@@ -126,7 +141,7 @@ The same app and screens, with what changes on a phone:
 | | On Android |
 |---|---|
 | **Format and folder** | M4A only (there's no FFmpeg on the phone), always in `Music/Songhaul/<playlist>`, where music players find it. No storage permission is needed. |
-| **Getting the link** | In YouTube Music, **Share → Songhaul**: the app opens with the playlist (or the song) loaded, or switches to it if it's already open. **Copy link** and then opening the app works too, through the clipboard. Playlist and song links can also be opened with the app if you turn on *Open supported links* for it in Android's app settings. |
+| **Getting the link** | In YouTube Music or SoundCloud, **Share → Songhaul**: the app opens with the playlist (or the song) loaded, or switches to it if it's already open. **Copy link** and then opening the app works too, through the clipboard. YouTube playlist and song links can also be opened with the app if you turn on *Open supported links* for it in Android's app settings. |
 | **Restricted videos** | The browser's cookies can't be read on a phone: import a `cookies.txt` exported from a computer in **Settings**. |
 | **Long playlists** | The download runs as a foreground service with a notification, so it goes on with the screen off (the first time, Android asks to allow notifications). The app asks before downloading on mobile data. |
 | **JavaScript** | The app ships its own QuickJS-ng, so YouTube's challenges are solved on the phone too. |
@@ -167,6 +182,7 @@ python -m yt_dlp --version
 ```bash
 python downloader.py "https://music.youtube.com/playlist?list=..."
 python downloader.py "https://music.youtube.com/watch?v=..."      # a single song
+python downloader.py "https://soundcloud.com/artist/sets/name"
 ```
 
 | Option | Values | Default | What it does |
@@ -178,7 +194,7 @@ python downloader.py "https://music.youtube.com/watch?v=..."      # a single son
 | `--browser` | `none`, `chrome`, `edge`, `firefox`, `brave`, `opera`, `vivaldi` | `none` | Browser whose cookies yt-dlp reads. See [Browser cookies](#browser-cookies). |
 | `--items` | positions, e.g. `1,3,5-8` | all | Download only these tracks. |
 | `--list` | | | Print the tracks with their position and duration, without downloading. |
-| `--covers` | | off | Embed the video thumbnail, cropped square, as cover art (cropping needs Pillow). |
+| `--covers` | | off | Embed the cover (for videos, the thumbnail), cropped square (cropping needs Pillow). |
 | `--clean-titles` | | off | Drop "(Official Video)", "[VISUALIZER]" and the like from titles and file names; "(Remix)", "(feat. …)" stay. |
 
 ```bash
@@ -251,6 +267,7 @@ in a few seconds, without downloading.
 | `songhaul/cli.py` | Command-line options and the Italian messages |
 | `songhaul/gui.py` | Desktop app: the three screens, background threads, settings and history files |
 | `songhaul/update.py` | Asks GitHub for the latest release, for the update notice |
+| `songhaul/mp4.py` | Repairs SoundCloud's M4A files where there's no FFmpeg |
 | `songhaul/paths.py` | App name, data and music folders, and the copy of what versions before 0.6.0 left on disk |
 | `songhaul/i18n.py` | Italian and English text of the app; tests check both have the same keys |
 | `main.py` | Starts the desktop app |
@@ -263,7 +280,7 @@ in a few seconds, without downloading.
 | `.github/workflows/release.yml` | Builds both apps and publishes a release on every `v*` tag; `.github/scripts/version.sh` sets the version |
 | `android/extension/` | `ytmpd_android`, a small Flet extension (Python + Dart, on top of the `receive_sharing_intent` and `flutter_foreground_task` plugins): the Share menu and the foreground service; `build_wheel.py` packs it |
 | `android/wheels/` | Those wheels, so building the APK doesn't need the NDK |
-| `docs/ROADMAP.md` | Plan for SoundCloud and Spotify links |
+| `docs/ROADMAP.md` | Plan for several platforms: SoundCloud done, Spotify on hold |
 | `ROADMAP.md` | The finished plan for the desktop and Android GUI app |
 | `DEVLOG.md` | What each phase found out, starting from the Android spike |
 | `spike/android/` | Throwaway Flet app used to test `ytmpd.core` on Android |
@@ -309,7 +326,7 @@ the folder with `ffmpeg.exe` (usually a `bin` folder) has to be added to the PAT
 <details>
 <summary><b>Some numbers are missing, for example there is no 003.</b></summary>
 
-That video couldn't be downloaded: deleted, private, blocked in your country or restricted. The number is its position
+That track couldn't be downloaded: deleted, private, blocked in your country, restricted or protected by DRM. The number is its position
 in the playlist, so the gap stays. If it was a sign-in problem, try again with `--browser`: the tracks already
 downloaded are skipped.
 
@@ -340,7 +357,7 @@ installed, and then try `--browser` with a browser where you are signed in.
 
 </details>
 
-Use it only for content you are allowed to download, following YouTube's terms of service and the copyright of each
+Use it only for content you are allowed to download, following the site's terms of service and the copyright of each
 track.
 
 Released under the [MIT license](LICENSE).

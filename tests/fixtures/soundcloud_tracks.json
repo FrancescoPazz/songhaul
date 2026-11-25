@@ -1,0 +1,198 @@
+[
+ {
+  "id": 75206121,
+  "title": "World On Fire (Re-Mastered)",
+  "duration": 199889,
+  "full_duration": 199959,
+  "policy": "MONETIZE",
+  "downloadable": false,
+  "has_downloads_left": false,
+  "permalink_url": "https://soundcloud.com/the-concept-band/world-on-fire-1",
+  "media": {
+   "transcodings": [
+    {
+     "preset": "aac_160k",
+     "snipped": false,
+     "format": {
+      "protocol": "cbc-encrypted-hls",
+      "mime_type": "audio/mp4; codecs=\"mp4a.40.2\""
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    },
+    {
+     "preset": "aac_160k",
+     "snipped": false,
+     "format": {
+      "protocol": "ctr-encrypted-hls",
+      "mime_type": "audio/mp4; codecs=\"mp4a.40.2\""
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    },
+    {
+     "preset": "aac_96k",
+     "snipped": false,
+     "format": {
+      "protocol": "cbc-encrypted-hls",
+      "mime_type": "audio/mp4; codecs=\"mp4a.40.2\""
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    }
+   ]
+  }
+ },
+ {
+  "id": 30510138,
+  "title": "D-D-Dance",
+  "duration": 219657,
+  "full_duration": 219747,
+  "policy": "ALLOW",
+  "downloadable": false,
+  "has_downloads_left": false,
+  "permalink_url": "https://soundcloud.com/the-concept-band/the-concept-d-d-dance",
+  "media": {
+   "transcodings": [
+    {
+     "preset": "aac_160k",
+     "snipped": false,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mp4; codecs=\"mp4a.40.2\""
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    },
+    {
+     "preset": "aac_96k",
+     "snipped": false,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mp4; codecs=\"mp4a.40.2\""
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    },
+    {
+     "preset": "abr_sq",
+     "snipped": false,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mpegurl"
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    }
+   ]
+  }
+ },
+ {
+  "id": 47127625,
+  "title": "The Royal Concept - Gimme Twice",
+  "duration": 205193,
+  "full_duration": 205348,
+  "policy": "ALLOW",
+  "downloadable": true,
+  "has_downloads_left": false,
+  "permalink_url": "https://soundcloud.com/the-concept-band/gimme-twice-mastered",
+  "media": {
+   "transcodings": [
+    {
+     "preset": "aac_160k",
+     "snipped": false,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mp4; codecs=\"mp4a.40.2\""
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    },
+    {
+     "preset": "aac_96k",
+     "snipped": false,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mp4; codecs=\"mp4a.40.2\""
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    },
+    {
+     "preset": "abr_sq",
+     "snipped": false,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mpegurl"
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    }
+   ]
+  }
+ },
+ {
+  "id": 1378976746,
+  "title": "misery w/lor2mg",
+  "duration": 214971,
+  "full_duration": 214962,
+  "policy": "MONETIZE",
+  "downloadable": true,
+  "has_downloads_left": true,
+  "permalink_url": "https://soundcloud.com/leviryan/misery-wlor2mg",
+  "media": {
+   "transcodings": [
+    {
+     "preset": "aac_160k",
+     "snipped": false,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mp4; codecs=\"mp4a.40.2\""
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    },
+    {
+     "preset": "aac_96k",
+     "snipped": false,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mp4; codecs=\"mp4a.40.2\""
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    },
+    {
+     "preset": "abr_sq",
+     "snipped": false,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mpegurl"
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/stream/hls"
+    }
+   ]
+  }
+ },
+ {
+  "id": 1055360503,
+  "title": "Makeba",
+  "duration": 30000,
+  "full_duration": 249025,
+  "policy": "SNIP",
+  "downloadable": false,
+  "has_downloads_left": false,
+  "permalink_url": "https://soundcloud.com/jainmusic-1/makeba",
+  "media": {
+   "transcodings": [
+    {
+     "preset": "mp3_1_0",
+     "snipped": true,
+     "format": {
+      "protocol": "hls",
+      "mime_type": "audio/mpeg"
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/preview/hls"
+    },
+    {
+     "preset": "mp3_1_0",
+     "snipped": true,
+     "format": {
+      "protocol": "progressive",
+      "mime_type": "audio/mpeg"
+     },
+     "url": "https://api-v2.soundcloud.com/media/x/preview/hls"
+    }
+   ]
+  }
+ }
+]

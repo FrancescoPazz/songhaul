@@ -85,6 +85,8 @@ class App:
         self.settings = DEFAULTS | load_json("settings.json", {})
         if self.mobile:
             self.settings |= {"folder": str(ANDROID_MUSIC), "format": "m4a"}
+            # yt-dlp's cache: the default, ~/.cache, can't be written on Android
+            os.environ.setdefault("XDG_CACHE_HOME", os.getenv("FLET_APP_STORAGE_CACHE") or str(DATA / "cache"))
         self.history = load_json("history.json", [])
         self.lang = resolve_language(self.settings["language"])
         self.tab = 0
@@ -293,7 +295,7 @@ class App:
         if isinstance(state, tuple):
             _, kind, reason = state
             return ft.Icon(ft.Icons.ERROR_OUTLINE, color=ft.Colors.ERROR, size=20,
-                           tooltip=f"{self.reason(kind)}\n\n{reason}")
+                           tooltip=f"{self.reason(kind)}\n\n{reason}".strip())
         return None
 
     def bottom_bar(self):
@@ -332,8 +334,8 @@ class App:
         return ft.Column([self.progress_bar, self.progress_text, ft.Row(controls)], spacing=8)
 
     def select(self, value):
-        self.selected = {t["id"] for t in self.playlist["tracks"] if self.status.get(t["id"]) != "already"} \
-            if value else set()
+        self.selected = {t["id"] for t in self.playlist["tracks"]
+                         if not t["problem"] and self.status.get(t["id"]) != "already"} if value else set()
         self.render()
 
     def toggle(self, vid, value):
@@ -351,7 +353,7 @@ class App:
         """Tracks already in the target folder's archive are shown as done and left unselected."""
         if not self.playlist:
             return
-        archived = core.archived_ids(self.archive())
+        archived = core.archived_ids(self.archive(), sources.source_for(self.playlist["url"]).platform)
         for track in self.playlist["tracks"]:
             vid = track["id"]
             if vid in archived and self.status.get(vid) != "done":  # keep this session's check marks
@@ -374,7 +376,7 @@ class App:
                 self.url_field.update()
 
     async def startup_link(self):
-        """A link shared from YouTube Music if the Share menu started the app, else one in the clipboard."""
+        """A link shared from another app if the Share menu started the app, else one in the clipboard."""
         shared = None
         if self.share:
             try:
@@ -387,7 +389,7 @@ class App:
             await self.prefill_from_clipboard()
 
     def on_lifecycle(self, e):
-        # Back from YouTube Music after "Share → Copy link": the link is waiting in the clipboard.
+        # Back from another app after "Share → Copy link": the link is waiting in the clipboard.
         if e.state == ft.AppLifecycleState.RESUME:
             self.page.run_task(self.prefill_from_clipboard)
 
@@ -414,9 +416,10 @@ class App:
             self.last_line = self.t("load_failed", reason=self.reason(core.reason_kind(str(ex))))
             self.remember_error(str(ex))
         else:
-            self.playlist = playlist | {"url": url}
-            self.status, self.percent = {}, {}
-            self.selected = {t["id"] for t in playlist["tracks"]}
+            self.playlist = playlist
+            self.percent = {}
+            self.status = {t["id"]: ("skipped", t["problem"], "") for t in playlist["tracks"] if t["problem"]}
+            self.selected = {t["id"] for t in playlist["tracks"] if not t["problem"]}
             self.mark_archived()
         finally:
             self.loading = False
@@ -692,8 +695,7 @@ class App:
             text = Path(files[0].path).read_text(encoding="utf-8", errors="replace")
         except OSError:
             text = ""
-        # yt-dlp reads only the Netscape format: comment lines and tab-separated fields.
-        if "\t" not in text or "youtube.com" not in text:
+        if not sources.has_cookies(text):
             return self.snack(self.t("cookies_invalid"))
         DATA.mkdir(parents=True, exist_ok=True)
         COOKIES.write_text(text, encoding="utf-8")

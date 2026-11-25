@@ -5,7 +5,7 @@
 <h1 align="center">Songhaul</h1>
 
 <p align="center">
-  Un'app desktop e uno script da riga di comando che scaricano una playlist di YouTube o YouTube Music, o un singolo brano, in MP3 o M4A.<br>
+  Un'app desktop e uno script da riga di comando che scaricano una playlist, o un singolo brano, da YouTube, YouTube Music o SoundCloud in MP3 o M4A.<br>
   Numera i file nell'ordine della playlist, scrive i tag, ricorda cosa ha già scaricato e può usare la sessione del browser per i video con restrizioni.
 </p>
 
@@ -32,10 +32,11 @@
 | **Scaricare dal terminale** | [Installazione](#installazione), poi [Uso](#uso): due comandi e un link. |
 | **Sapere cosa finisce sul disco** | [Come funziona](#come-funziona): nomi dei file, tag, brani saltati e nuove esecuzioni. |
 | **Scaricare video con limite d'età o privati** | [Cookie del browser](#cookie-del-browser): usa la sessione in cui hai già fatto l'accesso. |
+| **Scaricare da SoundCloud** | [SoundCloud](#soundcloud): cosa funziona e cosa non si può scaricare. |
 | **Usarlo dal tuo codice Python** | [Sviluppo](#sviluppo): il pacchetto `songhaul` e i suoi eventi. |
 | **Qualcosa è andato storto** | [Domande](#domande-frequenti): FFmpeg, buchi nella numerazione, file `NA`, HTTP 403. |
 
-[Come funziona](#come-funziona) · [Scarica l'app](#scarica-lapp) · [App desktop](#app-desktop) · [App Android](#app-android) · [Installazione](#installazione) · [Uso](#uso) · [Cookie del browser](#cookie-del-browser) ·
+[Come funziona](#come-funziona) · [SoundCloud](#soundcloud) · [Scarica l'app](#scarica-lapp) · [App desktop](#app-desktop) · [App Android](#app-android) · [Installazione](#installazione) · [Uso](#uso) · [Cookie del browser](#cookie-del-browser) ·
 [Sviluppo](#sviluppo) · [Roadmap](docs/ROADMAP.md) · [Domande](#domande-frequenti)
 
 ## Come funziona
@@ -48,7 +49,7 @@ migliore di ogni video e lo salva in MP3 o M4A.
 | **1. Controllo** | Per l'MP3, si ferma con codice di uscita 2 se `ffmpeg` non è nel PATH, prima di scaricare qualsiasi cosa. |
 | **2. Link** | Un link di `music.youtube.com` o `youtube.com` con il parametro `list=` diventa `https://www.youtube.com/playlist?list=…`, quindi funziona anche il link copiato da un brano in riproduzione dentro la playlist. Il link di un brano (`watch?v=…`) scarica solo quel brano, anche quando suona dentro un mix radio (`list=RD…`), che non finisce mai. |
 | **3. Download** | Prende il miglior flusso audio. YouTube nasconde i flussi dietro una verifica in JavaScript: yt-dlp la risolve con Deno, Node.js, QuickJS o Bun, quello che trova installato. |
-| **4. Conversione** | **MP3**: FFmpeg converte l'audio al bitrate scelto (192 kbps se non dici altro). **M4A**: il flusso AAC originale di YouTube viene salvato così com'è, senza conversione e senza perdere qualità. |
+| **4. Conversione** | **MP3**: FFmpeg converte l'audio al bitrate scelto (192 kbps se non dici altro). **M4A**: il flusso AAC originale del sito viene salvato così com'è, senza conversione e senza perdere qualità. |
 | **5. Tag** | Titolo e artista (e album, quando YouTube Music lo conosce). Gli MP3 ricevono tag ID3v2.3, la versione letta da Esplora file di Windows e dai lettori più vecchi. A scelta anche la copertina (la miniatura del video, ritagliata quadrata) e un titolo pulito, senza "(Official Video)" e simili. |
 | **6. Salto** | Un video rimosso, privato o bloccato nel tuo paese viene saltato e il resto della playlist prosegue. |
 | **7. Memoria** | Ogni brano scaricato viene annotato in `.ytmpd-archive.txt` nella cartella di output. Rilanciando la stessa playlist scarica solo i brani aggiunti nel frattempo. |
@@ -65,6 +66,20 @@ downloads/
 ```
 
 Per ogni brano il terminale mostra il titolo, poi percentuale, velocità e tempo rimanente, poi il nome del file salvato.
+
+## SoundCloud
+
+Le tracce e i set funzionano come i brani e le playlist, compresi i link brevi `on.soundcloud.com`. Profili, like e
+stazioni no: il link dev'essere di una traccia o di un set.
+
+| | |
+|---|---|
+| **Tracce con DRM** | Molte tracce commerciali sono trasmesse cifrate. Non si possono scaricare e vengono saltate con il motivo; nell'app sono segnalate appena carichi il set. Aggirare il DRM qui non è previsto. |
+| **Tracce Go+** | Senza abbonamento SoundCloud manda solo 30 secondi. Vengono saltate anche queste, invece di salvarle come se fossero il brano. |
+| **Tracce e set privati** | Usa il link segreto (quello che finisce con `/s-…`). |
+| **Con il tuo account** | I cookie del browser o un `cookies.txt` di soundcloud.com vengono passati a yt-dlp, che può usare il tuo abbonamento. Non provato da noi con un account Go+. |
+| **Qualità** | AAC a 96 o 160 kbps, che l'M4A conserva così com'è. Un MP3 a 320 kbps occupa solo più spazio. |
+| **Tag** | Titolo, artista, il set come album, e la copertina. |
 
 ## Scarica l'app
 
@@ -88,7 +103,7 @@ Per ogni brano il terminale mostra il titolo, poi percentuale, velocità e tempo
 
 | Schermata | Cosa c'è |
 |---|---|
-| **Scarica** | Il campo del link, riempito dagli appunti quando contengono un link di YouTube. **Carica** elenca i brani con posizione e durata; spunta quelli che vuoi. I brani già presenti nella cartella di destinazione sono segnati e lasciati fuori. Formato, qualità MP3 e cartella stanno in basso; ogni playlist ha la sua sottocartella, un brano singolo va direttamente nella cartella. Durante il download ogni brano mostra l'avanzamento, poi una spunta o un'icona rossa con il motivo del salto nel suggerimento. **Annulla** si ferma dopo il blocco in corso. |
+| **Scarica** | Il campo del link, riempito dagli appunti quando contengono un link di YouTube o SoundCloud. **Carica** elenca i brani con posizione e durata; spunta quelli che vuoi. I brani già presenti nella cartella di destinazione sono segnati e lasciati fuori. Formato, qualità MP3 e cartella stanno in basso; ogni playlist ha la sua sottocartella, un brano singolo va direttamente nella cartella. Durante il download ogni brano mostra l'avanzamento, poi una spunta o un'icona rossa con il motivo del salto nel suggerimento. **Annulla** si ferma dopo il blocco in corso. |
 | **Cronologia** | Gli ultimi 100 download: playlist, data, formato, cartella, quanti brani sono stati salvati e quali saltati, con il motivo. **Apri cartella**, **Ricarica**, e **Sincronizza**, che ricarica la playlist e scarica solo i brani aggiunti nel frattempo. |
 | **Impostazioni** | Copertina nei file (attiva di default) e titoli puliti (disattivi), cookie del browser (vedi [Cookie del browser](#cookie-del-browser)) o un file `cookies.txt`, lingua (italiano, inglese o quella del sistema), tema (chiaro, scuro o quello del sistema), le versioni di yt-dlp, FFmpeg e del runtime JavaScript in uso, e **Segnala un problema**: copia quelle versioni e gli ultimi errori (senza link) e apre una nuova issue su GitHub già compilata. |
 
@@ -125,7 +140,7 @@ La stessa app con le stesse schermate, con quello che cambia sul telefono:
 | | Su Android |
 |---|---|
 | **Formato e cartella** | Solo M4A (sul telefono non c'è FFmpeg), sempre in `Music/Songhaul/<playlist>`, dove i lettori musicali lo trovano. Non serve nessun permesso di archiviazione. |
-| **Come passare il link** | In YouTube Music, **Condividi → Songhaul**: l'app si apre con la playlist (o il brano) caricata, o ci passa se è già aperta. Funziona anche **Copia link** e poi aprire l'app, tramite gli appunti. I link alle playlist e ai brani si possono anche aprire con l'app, se nelle impostazioni Android dell'app attivi *Apri link supportati*. |
+| **Come passare il link** | In YouTube Music o SoundCloud, **Condividi → Songhaul**: l'app si apre con la playlist (o il brano) caricata, o ci passa se è già aperta. Funziona anche **Copia link** e poi aprire l'app, tramite gli appunti. I link di YouTube alle playlist e ai brani si possono anche aprire con l'app, se nelle impostazioni Android dell'app attivi *Apri link supportati*. |
 | **Video riservati** | Sul telefono i cookie del browser non si possono leggere: in **Impostazioni** importa un `cookies.txt` esportato da un computer. |
 | **Playlist lunghe** | Il download gira come servizio in primo piano con una notifica, quindi continua a schermo spento (la prima volta Android chiede di consentire le notifiche). L'app chiede conferma prima di scaricare con i dati mobili. |
 | **JavaScript** | L'app include un suo QuickJS-ng, quindi le verifiche di YouTube vengono risolte anche sul telefono. |
@@ -167,6 +182,7 @@ python -m yt_dlp --version
 ```bash
 python downloader.py "https://music.youtube.com/playlist?list=..."
 python downloader.py "https://music.youtube.com/watch?v=..."      # un singolo brano
+python downloader.py "https://soundcloud.com/artista/sets/nome"
 ```
 
 | Opzione | Valori | Predefinito | Cosa fa |
@@ -178,7 +194,7 @@ python downloader.py "https://music.youtube.com/watch?v=..."      # un singolo b
 | `--browser` | `none`, `chrome`, `edge`, `firefox`, `brave`, `opera`, `vivaldi` | `none` | Browser da cui yt-dlp legge i cookie. Vedi [Cookie del browser](#cookie-del-browser). |
 | `--items` | posizioni, es. `1,3,5-8` | tutti | Scarica solo questi brani. |
 | `--list` | | | Elenca i brani con posizione e durata, senza scaricarli. |
-| `--covers` | | no | Inserisce come copertina la miniatura del video, ritagliata quadrata (il ritaglio richiede Pillow). |
+| `--covers` | | no | Inserisce la copertina (per i video, la miniatura), ritagliata quadrata (il ritaglio richiede Pillow). |
 | `--clean-titles` | | no | Toglie "(Official Video)", "[VISUALIZER]" e simili da titoli e nomi dei file; "(Remix)", "(feat. …)" restano. |
 
 ```bash
@@ -251,6 +267,7 @@ result = core.download("https://music.youtube.com/playlist?list=...", "downloads
 | `songhaul/cli.py` | Opzioni da riga di comando e messaggi in italiano |
 | `songhaul/gui.py` | App desktop: le tre schermate, i thread in background, i file di impostazioni e cronologia |
 | `songhaul/update.py` | Chiede a GitHub l'ultima release, per l'avviso di aggiornamento |
+| `songhaul/mp4.py` | Ripara gli M4A di SoundCloud dove non c'è FFmpeg |
 | `songhaul/paths.py` | Nome dell'app, cartelle dei dati e della musica, e copia di ciò che le versioni prima della 0.6.0 hanno lasciato sul disco |
 | `songhaul/i18n.py` | Testi dell'app in italiano e inglese; i test controllano che abbiano le stesse chiavi |
 | `main.py` | Avvia l'app desktop |
@@ -263,7 +280,7 @@ result = core.download("https://music.youtube.com/playlist?list=...", "downloads
 | `.github/workflows/release.yml` | Compila le due app e pubblica una release a ogni tag `v*`; `.github/scripts/version.sh` imposta la versione |
 | `android/extension/` | `ytmpd_android`, una piccola estensione Flet (Python + Dart, basata sui plugin `receive_sharing_intent` e `flutter_foreground_task`): menu Condividi e servizio in primo piano; `build_wheel.py` la impacchetta |
 | `android/wheels/` | Quei wheel, così per compilare l'APK non serve l'NDK |
-| `docs/ROADMAP.md` | Piano per i link di SoundCloud e Spotify (in inglese) |
+| `docs/ROADMAP.md` | Piano per più piattaforme: SoundCloud fatto, Spotify sospeso (in inglese) |
 | `ROADMAP.md` | Il piano, concluso, dell'app desktop e Android (in inglese) |
 | `DEVLOG.md` | Cosa ha scoperto ogni fase, a partire dalla prova su Android |
 | `spike/android/` | App Flet usa e getta per provare `ytmpd.core` su Android |
@@ -310,7 +327,7 @@ FFmpeg con `-f m4a`.
 <details>
 <summary><b>Mancano alcuni numeri, per esempio non c'è il 003.</b></summary>
 
-Quel video non si è potuto scaricare: rimosso, privato, bloccato nel tuo paese o con restrizioni. Il numero è la sua
+Quel brano non si è potuto scaricare: rimosso, privato, bloccato nel tuo paese, con restrizioni o protetto da DRM. Il numero è la sua
 posizione nella playlist, quindi il buco resta. Se era un problema di accesso, riprova con `--browser`: i brani già
 scaricati vengono saltati.
 
@@ -341,7 +358,7 @@ installati, e poi prova `--browser` con un browser in cui hai fatto l'accesso.
 
 </details>
 
-Usalo solo per contenuti che hai il diritto di scaricare, rispettando i termini di servizio di YouTube e il diritto
+Usalo solo per contenuti che hai il diritto di scaricare, rispettando i termini di servizio del sito e il diritto
 d'autore di ogni brano.
 
 Rilasciato con [licenza MIT](LICENSE).

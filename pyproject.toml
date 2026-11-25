@@ -2,7 +2,7 @@
 [project]
 name = "songhaul"
 version = "0.6.0"  # keep in sync with songhaul/__init__.py
-description = "Download YouTube and YouTube Music playlists as MP3 or M4A"
+description = "Download playlists and songs from YouTube, YouTube Music and SoundCloud as MP3 or M4A"
 requires-python = ">=3.10"
 dependencies = ["flet==1.1.2", "yt-dlp>=2026.11.23"]
 

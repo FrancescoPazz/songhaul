@@ -7,6 +7,7 @@ from pathlib import Path
 from yt_dlp.utils import format_bytes, formatSeconds
 
 from . import core
+from .i18n import STRINGS
 
 
 def print_event(e):
@@ -32,7 +33,7 @@ def print_event(e):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Scarica una playlist, o un singolo brano, da YouTube/YouTube Music in MP3 o M4A."
+        description="Scarica una playlist, o un singolo brano, da YouTube, YouTube Music o SoundCloud in MP3 o M4A."
     )
     parser.add_argument("url", help="URL della playlist o del brano")
     parser.add_argument("-o", "--output", default="downloads", help="Cartella di output (default: downloads)")
@@ -44,17 +45,22 @@ def main(argv=None):
                         help="Browser da cui leggere i cookie. Usa 'none' per non usare cookie. Default: none.")
     parser.add_argument("--items", help="Solo questi brani, per posizione: es. 1,3,5-8")
     parser.add_argument("--list", action="store_true", help="Elenca i brani della playlist senza scaricarli")
-    parser.add_argument("--covers", action="store_true", help="Inserisce nel file la miniatura del video come copertina")
+    parser.add_argument("--covers", action="store_true", help="Inserisce la copertina nel file")
     parser.add_argument("--clean-titles", action="store_true",
                         help="Toglie \"(Official Video)\", \"[VISUALIZER]\" e simili da titolo e nome del file")
     args = parser.parse_args(argv)
 
     if args.list:
-        playlist = core.list_playlist(args.url, args.browser)
+        try:
+            playlist = core.list_playlist(args.url, args.browser)
+        except Exception as exc:
+            print(f"Errore: {exc}", file=sys.stderr)
+            return 1
         print(playlist["title"] or "")
         for t in playlist["tracks"]:
             duration = f"{int(t['duration']) // 60}:{int(t['duration']) % 60:02d}" if t["duration"] else "?"
-            print(f"{t['index']:03d}  {duration:>8}  {t['title']}")
+            problem = f"  [{STRINGS['it']['reason_' + t['problem']]}]" if t["problem"] else ""
+            print(f"{t['index']:03d}  {duration:>8}  {t['title'] or t['id']}{problem}")
         return 0
 
     if args.format == "mp3" and not core.ffmpeg_available():
@@ -62,13 +68,18 @@ def main(argv=None):
               "Installa FFmpeg e riapri il terminale, oppure usa -f m4a.", file=sys.stderr)
         return 2
 
-    print(f"Link:     {core.normalize_url(args.url)}")
+    try:
+        link = core.normalize_url(args.url)
+    except ValueError as exc:
+        print(f"Errore: {exc}", file=sys.stderr)
+        return 1
+    print(f"Link:     {link}")
     print(f"Output:   {Path(args.output).resolve()}")
     print(f"Formato:  {args.format}" + (f" {args.bitrate} kbps" if args.format == "mp3" else ""))
     print(f"Browser:  {args.browser}")
     if args.browser != "none":
         print("\nNota: yt-dlp leggerà i cookie della sessione del browser. Per i video con limite d'età "
-              "devi essere normalmente autenticato su YouTube nel browser scelto.")
+              "devi essere normalmente autenticato sul sito nel browser scelto.")
 
     try:
         result = core.download(args.url, args.output, args.format, args.bitrate, args.browser, args.items,

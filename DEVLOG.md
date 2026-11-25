@@ -1,5 +1,27 @@
 # Devlog
 
+## 2026-11-25 — Phase 1: SoundCloud
+
+- M4A without FFmpeg, tried first: each 10-second segment has its own index (`sidx`) and Android believes the first, so
+  MediaStore and `MediaExtractor` said 10 s of 151 and seeking failed. `mp4.single_index()` joins the indexes in one, as
+  in YouTube's files: 151.4 s, same samples, seeking works, also with tags and cover written afterwards. Nothing changes
+  where there's FFmpeg (yt-dlp rebuilds the file) or if the file has another shape.
+- Sets: yt-dlp lists them without titles. `SoundCloud.extract()` asks `api-v2/tracks?ids=` (50 per request) through
+  yt-dlp's `_call_api`, which also tells DRM and previews beforehand; if that internal call breaks, the list has ids.
+- Previews: `prepare()`, called before the format is chosen, drops `*_preview` formats, and skips the track with its
+  reason if nothing else is left. Before, 30 seconds were saved and archived as the song.
+- A short link can lead to a profile: yt-dlp would list every track of it. Short links are resolved first, and anything
+  that isn't a track or a set is refused.
+- New reasons: `drm`, `preview`, `format` ("Requested format is not available", which used to say "Video removed"),
+  `rate_limited`, `unsupported_link`. An empty playlist is now listed as empty.
+- Covers are tried from the best down (yt-dlp's order) and reduced to 1000 pixels. On YouTube the same picture is chosen,
+  sometimes in another compression.
+- On Android yt-dlp's cache went to `/data/.cache`, which can't be written: SoundCloud's client id was fetched again
+  every time. `XDG_CACHE_HOME` now points to the app's cache.
+- Checked with a set of six tracks, three with DRM: CLI (MP3, M4A, two runs), desktop app, emulator (shared text, download,
+  Sync, playback and seeking in YouTube Music's player). YouTube's recording from phase 0B still matches, except the
+  empty playlist and the cover's compression. Not checked: private links, Go+ accounts, a real phone.
+
 ## 2026-11-25 — Phase 0B: sources
 
 - `songhaul/sources/` has what depends on the platform: hosts, normal form of a link, playlist or not, error phrases,

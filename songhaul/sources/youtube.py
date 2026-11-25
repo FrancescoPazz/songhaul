@@ -17,7 +17,9 @@ def link_from_route(route: str | None) -> str | None:
 
 class YouTube(Source):
     name = "YouTube"
+    platform = "youtube"
     hosts = frozenset({"youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be"})
+    cookie_domain = "youtube.com"
     reasons = (
         ("age", ("confirm your age", "age-restricted", "inappropriate for some users")),
         ("bot", ("not a bot",)),

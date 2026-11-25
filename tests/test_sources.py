@@ -30,6 +30,13 @@ class Recognising(unittest.TestCase):
             self.assertIsNone(sources.link_in(text), text)
 
 
+    def test_cookies_of_a_known_platform(self):
+        for domain in (".youtube.com", ".soundcloud.com"):
+            self.assertTrue(sources.has_cookies(f"# Netscape HTTP Cookie File\n{domain}\tTRUE\t/\tTRUE\t0\ta\tb"))
+        for text in (".example.com\tTRUE\t/\tTRUE\t0\ta\tb", "youtube.com without tabs", ""):
+            self.assertFalse(sources.has_cookies(text), text)
+
+
 class YouTube(unittest.TestCase):
     def test_link_from_route(self):
         self.assertEqual(youtube.link_from_route("/watch?v=abc"), "https://www.youtube.com/watch?v=abc")

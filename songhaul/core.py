@@ -14,7 +14,8 @@ import yt_dlp
 from yt_dlp.postprocessor import PostProcessor
 from yt_dlp.utils import DownloadCancelled
 
-from .sources import SOURCES, source_for
+from . import mp4
+from .sources import SOURCES, source_for, source_of
 
 BROWSERS = ("none", "chrome", "edge", "firefox", "brave", "opera", "vivaldi")
 FORMATS = ("mp3", "m4a")
@@ -68,17 +69,23 @@ def archive_path(output_dir: str) -> Path:
     return Path(output_dir) / ARCHIVE
 
 
-def archived_ids(archive: str | Path) -> set[str]:
-    """Track ids listed in an archive file ("<platform> <id>" per line)."""
+def archived_ids(archive: str | Path, platform: str | None = None) -> set[str]:
+    """Track ids listed in an archive file ("<platform> <id>" per line), of every platform if none is given."""
     try:
         lines = Path(archive).read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
         return set()
-    return {line.split()[-1] for line in lines if line.strip()}
+    pairs = (line.split() for line in lines if line.strip())
+    return {pair[-1] for pair in pairs if platform in (None, pair[0])}
 
 
 # Checked in order: the first match wins, so the more specific phrases come first.
-_REASONS = tuple(r for s in SOURCES for r in s.reasons) + (
+_REASONS = (
+    ("unsupported_link", ("this kind of link",)),
+    ("drm", ("drm protect",)),
+    ("format", ("requested format is not available",)),
+    ("rate_limited", ("http error 429", "too many requests")),
+    *(r for s in SOURCES for r in s.reasons),
     ("cookies", ("cookie",)),
     ("forbidden", ("http error 403",)),
     ("not_found", ("does not exist", "http error 404", "http error 400", "unsupported url", "is not a valid url")),
@@ -166,7 +173,7 @@ def clean_title(title: str) -> str:
 
 
 def square_jpeg(data: bytes) -> bytes:
-    """Centre square of a video thumbnail, as JPEG. Without Pillow the image is returned as it is."""
+    """Centre square of a cover, 1000 pixels at most, as JPEG. Without Pillow the image is returned as it is."""
     try:
         from PIL import Image
     except ImportError:
@@ -180,7 +187,9 @@ def square_jpeg(data: bytes) -> bytes:
     side = min(width, height)
     left, top = (width - side) // 2, (height - side) // 2
     out = io.BytesIO()
-    image.crop((left, top, left + side, top + side)).save(out, "JPEG", quality=90)
+    image = image.crop((left, top, left + side, top + side))
+    image.thumbnail((1000, 1000))  # SoundCloud's originals can be several MB
+    image.save(out, "JPEG", quality=90)
     return out.getvalue()
 
 
@@ -211,12 +220,13 @@ def tags_for(info: dict) -> dict:
 
 
 class Mp4Tags(PostProcessor):
-    """Writes tags to M4A files with mutagen, so M4A works without FFmpeg (Android)."""
+    """Writes tags to M4A files with mutagen, and repairs them, so M4A works without FFmpeg (Android)."""
 
     def run(self, info):
         from mutagen.mp4 import MP4
 
         keys = {"title": "\xa9nam", "artist": "\xa9ART", "album": "\xa9alb"}
+        mp4.single_index(info["filepath"])
         audio = MP4(info["filepath"])
         for name, value in tags_for(info).items():
             audio[keys[name]] = [value]
@@ -225,11 +235,11 @@ class Mp4Tags(PostProcessor):
 
 
 class Covers(PostProcessor):
-    """Embeds the video thumbnail, cropped square, without FFmpeg (works on Android too). Never fails a track."""
+    """Embeds the cover, cropped square, without FFmpeg (works on Android too). Never fails a track."""
 
     def run(self, info):
-        thumbnails = sorted((t for t in info.get("thumbnails") or [] if ".jpg" in t.get("url", "")),
-                            key=lambda t: t.get("preference") or 0, reverse=True)
+        # yt-dlp sorts them from worst to best
+        thumbnails = [t for t in reversed(info.get("thumbnails") or []) if ".jpg" in t.get("url", "")]
         for thumbnail in thumbnails[:4]:  # maxresdefault.jpg is missing for some videos; fall back to smaller ones
             try:
                 data = self._downloader.urlopen(thumbnail["url"]).read()
@@ -290,6 +300,7 @@ class _Current(PostProcessor):
         self.clean = clean  # runs before the file name is made, so a clean title also gives a clean file name
 
     def run(self, info):
+        source_of(info).prepare(info)
         if self.clean:
             info["title"] = clean_title(info.get("title") or "")
         self.logger.current = {"id": info.get("id"), "title": info.get("title")}
@@ -300,10 +311,13 @@ def list_playlist(url: str, browser: str = "none", cookies: str | None = None) -
     """Titles and durations of the tracks, without downloading. Takes seconds even for long playlists."""
     opts = _base_options(browser, cookies) | {"extract_flat": "in_playlist", "skip_download": True,
                                      "logger": _Logger(lambda e: None)}  # errors still raise; nothing printed
+    source = source_for(url)
     with yt_dlp.YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(normalize_url(url), download=False)
-    entries = info.get("entries") or [info]
+        resolved = source.resolve(ydl, url)
+        info = source.extract(ydl, resolved)
+    entries = info.get("entries", [info])
     return {
+        "url": url if resolved == source.normalize(url) else resolved,  # a short link doesn't say what it leads to
         "title": info.get("title"),
         "is_playlist": "entries" in info,
         "tracks": [
@@ -312,6 +326,7 @@ def list_playlist(url: str, browser: str = "none", cookies: str | None = None) -
                 "id": e.get("id"),
                 "title": e.get("title"),
                 "duration": e.get("duration"),
+                "problem": e.get("problem"),  # why it can't be downloaded (a reason kind), if known beforehand
                 "thumbnail": (e.get("thumbnails") or [{}])[-1].get("url"),
             }
             for i, e in enumerate(entries, 1)
@@ -380,10 +395,11 @@ def download(url: str, output_dir: str = "downloads", fmt: str = "mp3", bitrate:
         ydl.add_post_processor(_Events(emit), when="after_move")
         # YouTube sometimes answers the first request with HTTP 403 and the same request works a moment later.
         # A second pass retries only the failed tracks: the archive skips the ones already done.
+        url = source_for(url).resolve(ydl, url)
         for attempt in range(2):
             logger.failed = []
             try:
-                ydl.download([normalize_url(url)])
+                ydl.download([url])
             except DownloadCancelled:
                 cancelled = True
                 break

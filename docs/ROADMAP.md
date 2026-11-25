@@ -1,7 +1,7 @@
 # Roadmap: from YouTube to several platforms
 
-Status: **phases 0A and 0B done** (25 November 2026), phase 1 next. Phases 2 and 3 depend on
-[decision D2](#decisions).
+Status: **phases 0A, 0B and 1 done** (25 November 2026), phase 4 next. Phases 2 and 3 (Spotify) are
+[on hold](#decisions).
 
 Goal: start from a link to a song or a playlist on YouTube, SoundCloud or Spotify and get audio files with consistent
 names, tags and covers. It applies to the CLI, the desktop app and the Android app.
@@ -16,9 +16,9 @@ Spotify, searched on a supported source.
 |---|---|---|
 | [0A. Rename](#phase-0a--rename) ✅ | New name everywhere, existing updates and history safe | 0.6.0 |
 | [0B. Common interface](#phase-0b--common-interface) ✅ | Separate sources, YouTube exactly as before | with 0.7.0 |
-| [1. SoundCloud](#phase-1--soundcloud) | Tracks and sets, with titles; previews and DRM recognised | 0.7.0 |
-| [2. Spotify, tracks](#phase-2--spotify-single-tracks) | A Spotify link becomes the right song, or an honest "not found" | 0.8.0 |
-| [3. Spotify, playlists](#phase-3--spotify-playlists) | Playlists and albums, with a review of doubtful matches | 0.9.0 |
+| [1. SoundCloud](#phase-1--soundcloud) ✅ | Tracks and sets, with titles; previews and DRM recognised | 0.7.0 |
+| [2. Spotify, tracks](#phase-2--spotify-single-tracks) ⏸ | A Spotify link becomes the right song, or an honest "not found" | 0.8.0 |
+| [3. Spotify, playlists](#phase-3--spotify-playlists) ⏸ | Playlists and albums, with a review of doubtful matches | 0.9.0 |
 | [4. Polish](#phase-4--polish) | Unified tags, clear errors, documentation | 1.0.0 |
 
 ---
@@ -108,8 +108,8 @@ missing:
 | **Private tracks** | Only with the secret link or signed in (`oauth_token` cookie) | From yt-dlp's code, not tried |
 | **Go+ with a subscription** | yt-dlp accepts the `oauth_token` cookie from the browser or `cookies.txt`; DRM stays out | From the code, not tried |
 | **Quality** | AAC at 96 or 160 kbps (HLS). A 320 kbps MP3 adds nothing | Formats listed |
-| **M4A without FFmpeg (Android)** | The file is created with tags and cover, but it's a fragmented MP4: `mutagen` reads **duration 0**, FFmpeg decodes it without errors (151 s) | Open risk, see phase 1 |
-| **Short links** `on.soundcloud.com` | They go through the generic extractor, which follows the redirect | To be tried |
+| **M4A without FFmpeg (Android)** | The file is created with tags and cover, but it's a fragmented MP4 with an index per segment: Android reads only the first, **10 s of 151**. Solved by joining the indexes (`mp4.py`) | Measured on the emulator |
+| **Short links** `on.soundcloud.com` | They go through the generic extractor, which follows the redirect. They can also hide a profile, whose tracks would all be listed: they're resolved first | Tried with public links |
 
 The official API isn't used: its [terms](https://developers.soundcloud.com/docs/api/terms-of-use) forbid saving
 features and "stream ripping". yt-dlp uses the site's API. The terms of use still apply to the user: the README has to
@@ -386,7 +386,7 @@ Android emulator, release with a tag. Network checks live in a manual script, ne
 | **Files** | `sources/soundcloud.py` (new); `core.py` (error reasons, `archived_ids` with the platform, format choice, thumbnail order, cover resizing); `gui.py` (cookies, rows with a problem); `i18n.py`; `cli.py`; README |
 | **New dependencies** | None |
 | **Includes** | Titles, durations, previews and DRM in one request every 50 tracks; a filter that excludes `*_preview` formats; `drm` and `preview` shown **before** the download; short and private links; SoundCloud's `cookies.txt` |
-| **Risks** | **M4A on Android**: duration 0 in a fragmented MP4. Tried **first** on the emulator (MediaStore and a player); if it fails, consider a remux without FFmpeg or declare SoundCloud desktop-only. `_call_api` is internal to yt-dlp: if it changes, fall back to the list without titles. Many DRM tracks: to be said clearly in the README. 429 limits |
+| **Risks** | **M4A on Android**: tried first; it failed, and joining the indexes solved it. `_call_api` is internal to yt-dlp: if it changes, fall back to the list without titles. Many DRM tracks: to be said clearly in the README. 429 limits |
 | **How to test** | Recorded responses: a set with normal, DRM and SNIP tracks; ids with the same number on two platforms; valid, private, short and deceptive links. Manual: a CC-BY track and a mixed set, MP3 and M4A, two runs in a row |
 | **Done when** | A mixed set downloads the free tracks and lists the others with the right reason, the second run downloads nothing, no 30-second files; on Android the file has the right duration in a player |
 
@@ -438,13 +438,11 @@ Android emulator, release with a tag. Network checks live in a manual script, ne
 | **D5** | Keep the old Music folder for those who already have the app? | **Yes**, so nothing is downloaded again |
 | **D8** | The old `ROADMAP.md`, and the language of this one? | **A note at the top** of the old one; this one **in English** like the other documents |
 | **D7** | SoundCloud tracks with DRM: skipped, or searched on YouTube Music? | **Skipped** in phase 1, with the reason; matching can be added after phase 2 |
+| **D2** | Spotify: go on, knowing the limits and the terms, or stop at SoundCloud? | **Stop at SoundCloud** for now; phases 2 and 3 stay here as a plan |
 
 ### Open
 
-D2 decides whether phases 2 and 3 exist; the others can wait for their phase.
-
 | | Question | Recommendation |
 |---|---|---|
-| **D2** | Spotify: is route A (own credentials, Premium, own playlists only) acceptable knowing the terms? Or stop at SoundCloud? | A, but only with Premium and if that limit is enough. B and C aren't recommended |
-| **D3** | Tags and cover of Spotify songs: from the song found on YouTube Music or from Spotify? | From YouTube Music: consistent with the YouTube source, less code, less friction with the terms |
 | **D6** | `Artist - Title` for YouTube and SoundCloud too? | Not until phase 4, then as an option |
+| **D3** | If Spotify comes back: Tags and cover of Spotify songs: from the song found on YouTube Music or from Spotify? | From YouTube Music: consistent with the YouTube source, less code, less friction with the terms |
