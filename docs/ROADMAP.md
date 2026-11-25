@@ -1,6 +1,6 @@
 # Roadmap: from YouTube to several platforms
 
-Status: **phase 0A done** (25 November 2026), phase 0B next. Phases 2 and 3 depend on
+Status: **phases 0A and 0B done** (25 November 2026), phase 1 next. Phases 2 and 3 depend on
 [decision D2](#decisions).
 
 Goal: start from a link to a song or a playlist on YouTube, SoundCloud or Spotify and get audio files with consistent
@@ -15,7 +15,7 @@ Spotify, searched on a supported source.
 | Phase | Result | Version |
 |---|---|---|
 | [0A. Rename](#phase-0a--rename) ✅ | New name everywhere, existing updates and history safe | 0.6.0 |
-| [0B. Common interface](#phase-0b--common-interface) | Separate sources, YouTube exactly as before | 0.6.1 |
+| [0B. Common interface](#phase-0b--common-interface) ✅ | Separate sources, YouTube exactly as before | with 0.7.0 |
 | [1. SoundCloud](#phase-1--soundcloud) | Tracks and sets, with titles; previews and DRM recognised | 0.7.0 |
 | [2. Spotify, tracks](#phase-2--spotify-single-tracks) | A Spotify link becomes the right song, or an honest "not found" | 0.8.0 |
 | [3. Spotify, playlists](#phase-3--spotify-playlists) | Playlists and albums, with a review of doubtful matches | 0.9.0 |
@@ -84,6 +84,8 @@ Phase 0 doesn't change behaviour, so these aren't part of it; each one belongs t
 | `archived_ids()` mixes up ids of different platforms | 1 |
 | `Covers`: with equal `preference` it tries the **smallest** thumbnails first (if the SoundCloud original is a PNG, the file gets a 16×16 one) | 1 |
 | README, "Where to change things": the cover row mentions `writethumbnail`, no longer used | 4 |
+| An empty playlist is listed as one track without a title: the playlist itself | 1 |
+| "This video is unavailable" is explained as an unexpected error: only "Video unavailable" is recognised | 4 |
 
 ---
 
@@ -211,7 +213,8 @@ songhaul/
 ├── paths.py           app name, data and music folders                     [phase 0A]
 ├── matching.py        comparing a track with candidates (pure functions)   [phase 2]
 └── sources/
-    ├── __init__.py    types, the yt-dlp based Source, source_for(url)      [phase 0B]
+    ├── __init__.py    SOURCES, source_for(url), link_in(text)              [phase 0B]
+    ├── base.py        Source: the answers that fit any yt-dlp link         [phase 0B]
     ├── youtube.py     is_mix, normalize, playlist                          [phase 0B]
     ├── soundcloud.py  links, bulk titles, previews and DRM                 [phase 1]
     └── spotify.py     metadata, search, resolution                         [phases 2-3]
@@ -224,6 +227,9 @@ songhaul/
 | `is_playlist(url)` | For Sync, instead of looking for `list=` |
 | `list(url)` | Title and tracks: `index`, `id`, `title`, `duration`, `thumbnail`, plus `artists`, `album`, `problem` (e.g. `drm`, `preview`) |
 | `jobs(url, tracks)` | What to download: links for yt-dlp, position, tags to impose. Spotify resolves here, one track at a time |
+
+Phase 0B has the first three, plus `reasons` and `track_id_in(message)` for errors. `list` comes with SoundCloud and
+`jobs` with Spotify, the first platforms that need something different from yt-dlp's own.
 
 `core.list_playlist()` and `core.download()` keep their signature and events: the CLI and the GUI don't notice.
 
@@ -431,6 +437,7 @@ Android emulator, release with a tag. Network checks live in a manual script, ne
 | **D4** | Rename the invisible internal names (`ytmpd_android`, `ytmpd_qjs`, `YTMPD_*` secrets)? | **No**, only the Python package. The others cost an NDK build, wheels and secrets to recreate, with no effect for users |
 | **D5** | Keep the old Music folder for those who already have the app? | **Yes**, so nothing is downloaded again |
 | **D8** | The old `ROADMAP.md`, and the language of this one? | **A note at the top** of the old one; this one **in English** like the other documents |
+| **D7** | SoundCloud tracks with DRM: skipped, or searched on YouTube Music? | **Skipped** in phase 1, with the reason; matching can be added after phase 2 |
 
 ### Open
 
@@ -441,4 +448,3 @@ D2 decides whether phases 2 and 3 exist; the others can wait for their phase.
 | **D2** | Spotify: is route A (own credentials, Premium, own playlists only) acceptable knowing the terms? Or stop at SoundCloud? | A, but only with Premium and if that limit is enough. B and C aren't recommended |
 | **D3** | Tags and cover of Spotify songs: from the song found on YouTube Music or from Spotify? | From YouTube Music: consistent with the YouTube source, less code, less friction with the terms |
 | **D6** | `Artist - Title` for YouTube and SoundCloud too? | Not until phase 4, then as an option |
-| **D7** | SoundCloud tracks with DRM: just skipped, or searched on YouTube Music with Spotify's matching? | Skipped in phase 1; matching can be added after phase 2 with little code |

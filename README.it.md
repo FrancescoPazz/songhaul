@@ -246,7 +246,8 @@ result = core.download("https://music.youtube.com/playlist?list=...", "downloads
 
 | Percorso | Contenuto |
 |---|---|
-| `songhaul/core.py` | Normalizzazione del link, opzioni di yt-dlp, elenco della playlist, download con eventi e annullamento, tag M4A |
+| `songhaul/core.py` | Opzioni di yt-dlp, elenco della playlist, download con eventi e annullamento, tag M4A |
+| `songhaul/sources/` | Un file per piattaforma: quali link sono suoi, la loro forma normale, i suoi errori |
 | `songhaul/cli.py` | Opzioni da riga di comando e messaggi in italiano |
 | `songhaul/gui.py` | App desktop: le tre schermate, i thread in background, i file di impostazioni e cronologia |
 | `songhaul/update.py` | Chiede a GitHub l'ultima release, per l'avviso di aggiornamento |
@@ -255,7 +256,7 @@ result = core.download("https://music.youtube.com/playlist?list=...", "downloads
 | `main.py` | Avvia l'app desktop |
 | `pyproject.toml` | Nome, versione e dipendenze dell'app per `flet build` |
 | `downloader.py` | Wrapper di due righe, così `python downloader.py` continua a funzionare |
-| `tests/test_core.py` | Test su link, opzioni e tag (`python -m unittest`) |
+| `tests/` | Test su link, opzioni e tag (`python -m unittest`) |
 | `requirements.txt` | `yt-dlp[default]`, che porta con sé `yt-dlp-ejs` (il risolutore della verifica JavaScript) e `mutagen` (tag M4A) |
 | `android/qjs/build_wheels.py` | Compila QuickJS-ng per Android con l'NDK e lo impacchetta nei wheel `ytmpd-qjs` |
 | `.github/workflows/yt-dlp-update.yml` | Ogni settimana: un nuovo yt-dlp diventa una nuova release di correzione; `.github/scripts/bump_ytdlp.py` aggiorna i file |

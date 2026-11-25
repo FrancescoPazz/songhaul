@@ -1,5 +1,18 @@
 # Devlog
 
+## 2026-11-25 — Phase 0B: sources
+
+- `songhaul/sources/` has what depends on the platform: hosts, normal form of a link, playlist or not, error phrases,
+  the id in an error. `core` asks `source_for(url)`; a link of no known platform goes to yt-dlp as before.
+- `Source.list()` and `Source.jobs()` of the roadmap aren't there yet: with one platform they'd only wrap yt-dlp.
+- Hosts are compared whole. The clipboard used to accept any text containing `youtube.com/`, even another site's link or
+  a sentence; now it must be just a link. The fallback name of an untitled playlist on other sites is "Playlist".
+- Checked by recording, with the code before and after, 9 listings and 8 downloads (song, song in a mix, part of a
+  playlist twice, song inside a playlist, removed video, MP3 with cover, SoundCloud track): events, file names, sizes and
+  archives are identical.
+- On the emulator: a link inside shared text, a link opened with the app, Sync shown for playlists only.
+- Two defects found on the way are in the roadmap's table (empty playlists, "This video is unavailable").
+
 ## 2026-11-25 — Phase 0A: renamed to Songhaul
 
 - New plan in [`docs/ROADMAP.md`](docs/ROADMAP.md) (SoundCloud and Spotify links). Its first step is the name: the

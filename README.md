@@ -246,7 +246,8 @@ in a few seconds, without downloading.
 
 | Path | Contents |
 |---|---|
-| `songhaul/core.py` | Link normalization, yt-dlp options, playlist listing, download with events and cancel, M4A tags |
+| `songhaul/core.py` | yt-dlp options, playlist listing, download with events and cancel, M4A tags |
+| `songhaul/sources/` | One file per platform: which links are its own, their normal form, its errors |
 | `songhaul/cli.py` | Command-line options and the Italian messages |
 | `songhaul/gui.py` | Desktop app: the three screens, background threads, settings and history files |
 | `songhaul/update.py` | Asks GitHub for the latest release, for the update notice |
@@ -255,7 +256,7 @@ in a few seconds, without downloading.
 | `main.py` | Starts the desktop app |
 | `pyproject.toml` | App name, version and dependencies for `flet build` |
 | `downloader.py` | Two-line wrapper, so `python downloader.py` keeps working |
-| `tests/test_core.py` | Tests for links, options and tags (`python -m unittest`) |
+| `tests/` | Tests for links, options and tags (`python -m unittest`) |
 | `requirements.txt` | `yt-dlp[default]`, which brings `yt-dlp-ejs` (the JavaScript challenge solver) and `mutagen` (M4A tags) |
 | `android/qjs/build_wheels.py` | Builds QuickJS-ng for Android with the NDK and wraps it in the `ytmpd-qjs` wheels |
 | `.github/workflows/yt-dlp-update.yml` | Weekly: a new yt-dlp means a new patch release; `.github/scripts/bump_ytdlp.py` updates the files |

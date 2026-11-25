@@ -4,7 +4,6 @@ import hashlib
 import json
 import os
 import platform
-import re
 import shutil
 import subprocess
 import sys
@@ -18,8 +17,9 @@ import flet as ft
 import yt_dlp
 from yt_dlp.utils import sanitize_filename
 
-from . import __version__, core, paths, update
+from . import __version__, core, paths, sources, update
 from .i18n import STRINGS, resolve_language
+from .sources.youtube import link_from_route
 
 SEED = "#E0475B"
 REPO = f"https://github.com/{update.REPO}"
@@ -71,17 +71,6 @@ def duration_text(seconds):
         else f"{seconds // 60}:{seconds % 60:02d}"
 
 
-def link_in_text(text):
-    """The first YouTube link in shared text: some apps share "Title https://…" rather than just the link."""
-    match = re.search(r"https://(?:music\.|www\.|m\.)?youtu(?:be\.com|\.be)/\S+", text or "")
-    return match.group(0) if match else None
-
-
-def link_from_route(route):
-    """A YouTube link opened with the app arrives as a route like "/playlist?list=..." or "/watch?v=..."."""
-    return f"https://www.youtube.com{route}" if route and ("list=" in route or "v=" in route) else None
-
-
 def open_folder(path):
     if sys.platform == "win32":
         os.startfile(path)
@@ -121,7 +110,7 @@ class App:
         if self.mobile:
             try:  # the ytmpd_android extension is only in the Android build (android/extension)
                 from ytmpd_android import KeepAlive, ShareReceiver
-                self.share = ShareReceiver(on_shared=lambda e: self.open_link(link_in_text(e.data)))
+                self.share = ShareReceiver(on_shared=lambda e: self.open_link(sources.link_in(e.data)))
                 self.keep_alive = KeepAlive()
             except ImportError:
                 pass
@@ -164,10 +153,13 @@ class App:
     def snack(self, text):
         self.page.show_dialog(ft.SnackBar(ft.Text(text)))
 
+    def playlist_title(self):
+        return self.playlist["title"] or sources.source_for(self.playlist["url"]).name
+
     def output_dir(self):
         base = Path(self.settings["folder"])
         if self.playlist and self.playlist["is_playlist"]:
-            return base / sanitize_filename(self.playlist["title"] or "YouTube")
+            return base / sanitize_filename(self.playlist_title())
         return base
 
     def archive(self):
@@ -373,9 +365,8 @@ class App:
             text = (await self.clipboard.get() or "").strip()
         except Exception:
             return
-        is_link = ("youtube.com/" in text or "youtu.be/" in text) and "\n" not in text
         # Replace only an empty field or an earlier link, never something the user is typing.
-        if is_link and text != self.url and (not self.url or "youtu" in self.url) and not (
+        if sources.is_known(text) and text != self.url and (not self.url or sources.is_known(self.url)) and not (
                 self.loading or self.downloading):
             self.url = text
             if self.tab == 0:
@@ -387,7 +378,7 @@ class App:
         shared = None
         if self.share:
             try:
-                shared = link_in_text(await self.share.get_initial())
+                shared = sources.link_in(await self.share.get_initial())
             except Exception:
                 pass
         if shared:
@@ -459,7 +450,7 @@ class App:
         self.service_on, started = False, False
         if self.keep_alive:
             try:  # the first time this waits for the notification permission dialog
-                started = await self.keep_alive.start(self.playlist["title"] or "YouTube",
+                started = await self.keep_alive.start(self.playlist_title(),
                                                       self.progress_text.value or self.t("notification_starting"),
                                                       self.t("notification_channel"))
             except Exception:
@@ -551,7 +542,7 @@ class App:
             self.status[vid], self.percent[vid] = "downloading", 0
             self.progress_text.value = self.t("progress", n=run["n"], total=run["total"], title=e["title"] or "")
             if getattr(self, "service_on", False):
-                self.page.run_task(self.keep_alive.update, self.playlist["title"] or "YouTube", self.progress_text.value)
+                self.page.run_task(self.keep_alive.update, self.playlist_title(), self.progress_text.value)
         elif kind == "progress":
             self.percent[vid] = e["percent"] or 0
             if time.monotonic() - run["last_draw"] < 0.2:  # a few redraws per second are plenty

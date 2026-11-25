@@ -1,4 +1,4 @@
-"""Download a YouTube / YouTube Music playlist as MP3 or M4A.
+"""Download a playlist, or a single song, as MP3 or M4A. What depends on the platform is in `sources`.
 
 Nothing here prints: progress is reported as event dicts to `on_event`, so the CLI and the GUI can draw it their way.
 Use only for content you are authorized to download.
@@ -9,11 +9,12 @@ import os
 import re
 import shutil
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
 
 import yt_dlp
 from yt_dlp.postprocessor import PostProcessor
 from yt_dlp.utils import DownloadCancelled
+
+from .sources import SOURCES, source_for
 
 BROWSERS = ("none", "chrome", "edge", "firefox", "brave", "opera", "vivaldi")
 FORMATS = ("mp3", "m4a")
@@ -39,28 +40,12 @@ def js_runtime_names() -> list[str]:
     return names + (["quickjs"] if "path" in js_runtimes()["quickjs"] else [])
 
 
-def is_mix(playlist_id: str) -> bool:
-    """YouTube's endless radio mixes (RD...), started from a song. RDCLAK/RDTMAK ones are real, finite playlists."""
-    return playlist_id.startswith("RD") and not playlist_id.startswith(("RDCLAK", "RDTMAK"))
-
-
 def normalize_url(url: str) -> str:
-    """youtube.com / music.youtube.com links: one with list= becomes the plain playlist link, a song the plain
-    video link. A song playing inside a radio mix is the song: the mix never ends."""
-    parsed = urlparse(url)
-    if parsed.netloc not in {"music.youtube.com", "www.youtube.com", "youtube.com", "m.youtube.com"}:
-        return url
-    query = parse_qs(parsed.query)
-    playlist_id, video_id = query.get("list", [None])[0], query.get("v", [None])[0]
-    if playlist_id and not (video_id and is_mix(playlist_id)):
-        return f"https://www.youtube.com/playlist?list={playlist_id}"
-    if video_id:
-        return f"https://www.youtube.com/watch?v={video_id}"
-    return url
+    return source_for(url).normalize(url)
 
 
 def is_playlist_url(url: str) -> bool:
-    return "list=" in normalize_url(url)
+    return source_for(url).is_playlist(url)
 
 
 def bundled_ffmpeg() -> str | None:
@@ -84,7 +69,7 @@ def archive_path(output_dir: str) -> Path:
 
 
 def archived_ids(archive: str | Path) -> set[str]:
-    """Video ids listed in an archive file ("youtube <id>" per line)."""
+    """Track ids listed in an archive file ("<platform> <id>" per line)."""
     try:
         lines = Path(archive).read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
@@ -93,13 +78,7 @@ def archived_ids(archive: str | Path) -> set[str]:
 
 
 # Checked in order: the first match wins, so the more specific phrases come first.
-_REASONS = (
-    ("age", ("confirm your age", "age-restricted", "inappropriate for some users")),
-    ("bot", ("not a bot",)),
-    ("private", ("private video",)),
-    ("members", ("members-only", "join this channel", "premium")),
-    ("region", ("in your country", "geo restrict")),
-    ("unavailable", ("video unavailable", "has been removed", "is not available", "account associated")),
+_REASONS = tuple(r for s in SOURCES for r in s.reasons) + (
     ("cookies", ("cookie",)),
     ("forbidden", ("http error 403",)),
     ("not_found", ("does not exist", "http error 404", "http error 400", "unsupported url", "is not a valid url")),
@@ -114,9 +93,8 @@ def reason_kind(message: str) -> str:
 
 
 def video_id_in(message: str) -> str | None:
-    """yt-dlp errors start with "[youtube] <id>: ..."; returns that id."""
-    match = re.search(r"\[youtube\] ([\w-]{11}):", message)
-    return match.group(1) if match else None
+    """yt-dlp errors usually start with "[platform] <id>: ..."; returns that id."""
+    return next(filter(None, (s.track_id_in(message) for s in SOURCES)), None)
 
 
 def _base_options(browser: str, cookies: str | None = None) -> dict:
@@ -161,7 +139,7 @@ def build_options(output_dir: str, fmt: str = "mp3", bitrate: str = "192", brows
         if ffmpeg := bundled_ffmpeg():
             opts["ffmpeg_location"] = ffmpeg  # its folder has no ffprobe; yt-dlp falls back to `ffmpeg -i`
     elif fmt == "m4a":
-        # YouTube's own AAC stream, saved as is: no FFmpeg, no re-encoding. Tags come from Mp4Tags.
+        # The platform's own AAC stream, saved as is: no FFmpeg, no re-encoding. Tags come from Mp4Tags.
         opts["format"] = "bestaudio[ext=m4a]"
     else:
         raise ValueError(f"unknown format: {fmt}")
@@ -223,7 +201,7 @@ def embed_cover(path: str, jpeg: bytes):
 
 
 def tags_for(info: dict) -> dict:
-    """Title, artist and album as YouTube Music reports them, falling back to the video's own fields."""
+    """Title, artist and album as the platform reports them, falling back to the upload's own fields."""
     tags = {
         "title": info.get("track") or info.get("title"),
         "artist": info.get("artist") or info.get("creator") or info.get("uploader") or info.get("channel"),
