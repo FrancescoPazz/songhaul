@@ -4,7 +4,7 @@ name = "songhaul"
 version = "0.5.0"  # keep in sync with songhaul/__init__.py
 description = "Download YouTube and YouTube Music playlists as MP3 or M4A"
 requires-python = ">=3.10"
-dependencies = ["flet==1.1.2", "yt-dlp>=2026.10.26"]
+dependencies = ["flet==1.1.2", "yt-dlp>=2026.11.23"]
 
 [tool.flet]
 org = "io.github.francescopazz"
@@ -19,13 +19,13 @@ exclude = ["downloads", "spike", "tests", "docs", "build", ".venv", "android", "
            "README.md", "README.it.md", "requirements.txt", "downloader.py"]
 
 [tool.flet.windows]
-dependencies = ["yt-dlp[default]>=2026.10.26", "imageio-ffmpeg", "pillow"]
+dependencies = ["yt-dlp[default]>=2026.11.23", "imageio-ffmpeg", "pillow"]
 
 [tool.flet.macos]
-dependencies = ["yt-dlp[default]>=2026.10.26", "imageio-ffmpeg", "pillow"]
+dependencies = ["yt-dlp[default]>=2026.11.23", "imageio-ffmpeg", "pillow"]
 
 [tool.flet.linux]
-dependencies = ["yt-dlp[default]>=2026.10.26", "imageio-ffmpeg", "pillow"]
+dependencies = ["yt-dlp[default]>=2026.11.23", "imageio-ffmpeg", "pillow"]
 
 [tool.flet.android]
 # Pure-Python parts of yt-dlp[default] (its native extras aren't needed for YouTube), plus QuickJS and the

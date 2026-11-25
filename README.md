@@ -15,7 +15,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-e0475b?style=flat&labelColor=1d1517" alt="Python 3.10 or later">
-  <img src="https://img.shields.io/badge/yt--dlp-2026.10.26-e0475b?style=flat&labelColor=1d1517" alt="yt-dlp 2026.10.26">
+  <img src="https://img.shields.io/badge/yt--dlp-2026.11.23-e0475b?style=flat&labelColor=1d1517" alt="yt-dlp 2026.11.23">
   <img src="https://img.shields.io/badge/MP3-128%E2%80%93320%20kbps-e0475b?style=flat&labelColor=1d1517" alt="MP3 from 128 to 320 kbps">
   <img src="https://img.shields.io/badge/M4A-no%20FFmpeg-e0475b?style=flat&labelColor=1d1517" alt="M4A without FFmpeg">
   <img src="https://img.shields.io/badge/desktop%20app-Flet-e0475b?style=flat&labelColor=1d1517" alt="Desktop app built with Flet">
