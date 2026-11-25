@@ -1,5 +1,9 @@
 # Roadmap
 
+> This plan is finished, except for the checks on a real phone. The app was called YT Music Playlist Downloader
+> (package `ytmpd`) until 0.6.0; the text keeps the names of the time. The current plan is
+> [docs/ROADMAP.md](docs/ROADMAP.md).
+
 From a command-line script to a GUI app for the desktop (Windows first, then macOS and Linux) and Android, with the
 same features on both. The plan goes in phases; each one ends with something that works and can be released, and the
 riskiest part (Android) is tested before the interface is built.
