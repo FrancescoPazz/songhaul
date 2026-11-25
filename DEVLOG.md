@@ -12,7 +12,8 @@
 - Option "Artist in the file name" (`--artist-names`). A channel isn't taken for an artist.
 - `youtu.be` links are normalised like the others (a mix becomes its song). "This video is unavailable" has its reason.
 - The CLI explains errors in plain words, as the app does, followed by yt-dlp's message.
-- `tests.yml` runs the tests on every push, on Python 3.10 and 3.13.
+- `tests.yml` runs the tests on every push, on Python 3.11 and 3.13. Its first run showed that yt-dlp needs 3.11 since
+  2026.10.26: the README said 3.10.
 - Checked by reading the tags back from real files: a YouTube song and playlist, a SoundCloud set, both formats.
 
 ## 2026-11-25 — Phase 1: SoundCloud

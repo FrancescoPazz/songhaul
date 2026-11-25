@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10%2B-e0475b?style=flat&labelColor=1d1517" alt="Python 3.10 or later">
+  <img src="https://img.shields.io/badge/Python-3.11%2B-e0475b?style=flat&labelColor=1d1517" alt="Python 3.11 or later">
   <img src="https://img.shields.io/badge/yt--dlp-2026.11.23-e0475b?style=flat&labelColor=1d1517" alt="yt-dlp 2026.11.23">
   <img src="https://img.shields.io/badge/MP3-128%E2%80%93320%20kbps-e0475b?style=flat&labelColor=1d1517" alt="MP3 from 128 to 320 kbps">
   <img src="https://img.shields.io/badge/M4A-no%20FFmpeg-e0475b?style=flat&labelColor=1d1517" alt="M4A without FFmpeg">
@@ -165,7 +165,7 @@ PIP_FIND_LINKS="$PWD/android/wheels" PYTHONUTF8=1 flet build apk --arch arm64-v8
 
 ## Install
 
-You need Python 3.10 or later. FFmpeg is needed only for MP3, and a JavaScript runtime (Deno or Node.js) is strongly
+You need Python 3.11 or later. FFmpeg is needed only for MP3, and a JavaScript runtime (Deno or Node.js) is strongly
 recommended: without one, YouTube serves fewer formats and some downloads fail.
 
 ```bash

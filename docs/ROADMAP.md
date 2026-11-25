@@ -31,7 +31,7 @@ before the rename: `ytmpd/` is now `songhaul/`.
 
 | What | Detail |
 |---|---|
-| Language | Python ≥ 3.10, plus a little Dart in the Android extension |
+| Language | Python ≥ 3.10 (3.11 in fact, as yt-dlp requires), plus a little Dart in the Android extension |
 | Download | `yt-dlp[default]>=2026.10.26`, used as a library. Brings `yt-dlp-ejs`, `mutagen`, `requests`, `certifi` |
 | Conversion | FFmpeg for MP3 only; on the desktop it comes from `imageio-ffmpeg`. Not on Android: M4A only |
 | Interface | `argparse` CLI (`cli.py`), Flet 1.1.2 desktop and Android app (`gui.py`) |
