@@ -82,7 +82,7 @@ messages are in Italian.
 
 | | |
 |---|---|
-| <img src="docs/screenshots/en/download.png" alt="Download screen: the playlist link, one track with a green check mark, format MP3 at 192 kbps and the destination folder" width="420"> | <img src="docs/screenshots/en/history.png" alt="History screen: one playlist with date, format, folder and the buttons Open folder and Load again" width="420"> |
+| <img src="docs/screenshots/en/download.png" alt="Download screen: the playlist link, one track with a green check mark, format MP3 at 192 kbps and the destination folder" width="420"> | <img src="docs/screenshots/en/history.png" alt="History screen: one playlist with date, format, folder and the buttons Open folder, Load again and Sync" width="420"> |
 | *Download: the tracks, what's done and where it goes* | *History: every download, with what was skipped and why* |
 | <img src="docs/screenshots/en/settings.png" alt="Settings screen: browser cookies, language, theme and the versions of yt-dlp, FFmpeg and the JavaScript runtime" width="420"> | |
 | *Settings: cookies, language, theme, and what the app found on the computer* | |

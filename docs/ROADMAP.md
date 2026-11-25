@@ -1,6 +1,6 @@
 # Roadmap: from YouTube to several platforms
 
-Status: **approved for phase 0** (25 November 2026). Phase 0A is in progress; phases 2 and 3 depend on
+Status: **phase 0A done** (25 November 2026), phase 0B next. Phases 2 and 3 depend on
 [decision D2](#decisions).
 
 Goal: start from a link to a song or a playlist on YouTube, SoundCloud or Spotify and get audio files with consistent
@@ -14,7 +14,7 @@ Spotify, searched on a supported source.
 
 | Phase | Result | Version |
 |---|---|---|
-| [0A. Rename](#phase-0a--rename) 🚧 | New name everywhere, existing updates and history safe | 0.6.0 |
+| [0A. Rename](#phase-0a--rename) ✅ | New name everywhere, existing updates and history safe | 0.6.0 |
 | [0B. Common interface](#phase-0b--common-interface) | Separate sources, YouTube exactly as before | 0.6.1 |
 | [1. SoundCloud](#phase-1--soundcloud) | Tracks and sets, with titles; previews and DRM recognised | 0.7.0 |
 | [2. Spotify, tracks](#phase-2--spotify-single-tracks) | A Spotify link becomes the right song, or an honest "not found" | 0.8.0 |
@@ -310,7 +310,7 @@ downloader), anything starting with "Spot".
 | README, README.it | Title, URLs, file names, folders, imports, layout |
 | `ROADMAP.md` (root) | A note at the top: it's history |
 | `DEVLOG.md` | Not rewritten: a new entry |
-| `docs/screenshots/` | 10 PNGs show the old name: to be redone |
+| `docs/screenshots/` | 10 PNGs, redone with the new name |
 
 **Kept on purpose**
 

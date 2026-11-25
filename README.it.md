@@ -81,7 +81,7 @@ Per ogni brano il terminale mostra il titolo, poi percentuale, velocità e tempo
 
 | | |
 |---|---|
-| <img src="docs/screenshots/it/download.png" alt="Schermata Scarica: il link della playlist, un brano con la spunta verde, formato MP3 a 192 kbps e la cartella di destinazione" width="420"> | <img src="docs/screenshots/it/history.png" alt="Schermata Cronologia: una playlist con data, formato, cartella e i pulsanti Apri cartella e Ricarica" width="420"> |
+| <img src="docs/screenshots/it/download.png" alt="Schermata Scarica: il link della playlist, un brano con la spunta verde, formato MP3 a 192 kbps e la cartella di destinazione" width="420"> | <img src="docs/screenshots/it/history.png" alt="Schermata Cronologia: una playlist con data, formato, cartella e i pulsanti Apri cartella, Ricarica e Sincronizza" width="420"> |
 | *Scarica: i brani, cosa è fatto e dove finisce* | *Cronologia: ogni download, con cosa è stato saltato e perché* |
 | <img src="docs/screenshots/it/settings.png" alt="Schermata Impostazioni: cookie del browser, lingua, tema e le versioni di yt-dlp, FFmpeg e del runtime JavaScript" width="420"> | |
 | *Impostazioni: cookie, lingua, tema, e cosa l'app ha trovato sul computer* | |

@@ -11,7 +11,13 @@
   files once, with `settings.json` last as the mark. Without the mark, a `cookies.txt` removed in Settings would come
   back at the next start. `paths.py` doesn't import Flet, which the test job on GitHub doesn't install.
 - Checked on the emulator: the new APK over 0.3.0 (same debug key) kept one app, its history and the old Music folder;
-  Sync said there was nothing new.
+  Sync said there was nothing new. On Windows, with data laid out as 0.5.0 leaves it, Sync said the same.
+- A manual run of `release.yml` built all four platforms; its APK has the id and certificate of the published 0.5.0 and
+  a higher versionCode. The update check of 0.5.0 follows GitHub's redirect from the old repository name.
+- After renaming the project, the local CMake cache in `build/flutter/build/windows` still names the old target and the
+  Windows build fails: delete that folder once. GitHub builds from scratch and isn't affected.
+- yt-dlp 2026.10.26 can't solve YouTube's current JavaScript challenge (it warns and goes on with the formats left);
+  2026.11.23 can, so the minimum goes up with this release.
 - Building the APK while the emulator runs can use up Windows' virtual memory: the Gradle daemon died with 140 MB left.
   `GRADLE_OPTS=-Dorg.gradle.jvmargs=-Xmx2g` is enough for this app (Flet's template asks for 8 GB).
 
