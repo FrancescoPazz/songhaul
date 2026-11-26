@@ -42,7 +42,7 @@ class Source:
         """yt-dlp's info of a resolved link, with the tracks' titles; "problem" is why a track can't be downloaded."""
         return ydl.extract_info(url, download=False)
 
-    def prepare(self, info: dict) -> None:
+    def prepare(self, info: dict, ydl=None) -> None:
         """Last look at a track before its format is chosen. An ExtractorError skips the track."""
 
     def track_id_in(self, message: str) -> str | None:

@@ -1,5 +1,23 @@
 # Devlog
 
+## 2026-11-26 — The platforms' terms
+
+- Read YouTube's Terms of Service (30 May 2023), the Paid Service Terms, SoundCloud's Terms of Use (the newest readable,
+  December 2020: the live page needs JavaScript), SoundCloud's API terms and branding rules, Google's trademark
+  guidelines and GitHub's policies on circumvention claims.
+- YouTube allows downloads only through its own features, with written permission, or as the law allows; SoundCloud only
+  through its own download and offline features, where the uploader allows them. No code can make a downloader fit that:
+  the READMEs now say so near the top, and the app's About section says it's not affiliated with them.
+- Go+ tracks are now skipped for subscribers too (`monetization_model` `SUB_HIGH_TIER`, asked to SoundCloud before the
+  format is chosen): SoundCloud lets subscribers keep them offline only in its app. The README used to say a subscription
+  could be used.
+- New setting, off by default: **Only downloads the uploader allows** (`--allowed-only`). From SoundCloud it takes only
+  the `download` format, the original file that SoundCloud's download button gives where the uploader turned it on: the
+  one way its terms allow. SoundCloud answers 401 to guests for it, so the track is skipped with a "login" reason when
+  `downloadable` is true but the format is missing. The flag travels in yt-dlp's params (`allowed_only`), where the
+  sources read it. Checked live without an account: a downloadable track gives "login", a free stream "not_offered".
+  YouTube stays as it was, with the notice: nothing in it fits its terms.
+
 ## 2026-11-26 — Phase 4: the same tags everywhere
 
 - One tag writer (`core.write_tags()`, mutagen) instead of FFmpeg for MP3 and mutagen for M4A. Both formats now get title,

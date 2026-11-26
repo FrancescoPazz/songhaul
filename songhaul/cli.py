@@ -55,11 +55,14 @@ def main(argv=None):
                         help="Toglie \"(Official Video)\", \"[VISUALIZER]\" e simili da titolo e nome del file")
     parser.add_argument("--artist-names", action="store_true",
                         help="Mette l'artista nel nome del file, se il titolo non lo contiene già")
+    parser.add_argument("--allowed-only", action="store_true",
+                        help="Da SoundCloud solo le tracce di cui chi le ha caricate consente il download "
+                             "(file originale; servono i cookie del tuo account)")
     args = parser.parse_args(argv)
 
     if args.list:
         try:
-            playlist = core.list_playlist(args.url, args.browser)
+            playlist = core.list_playlist(args.url, args.browser, allowed_only=args.allowed_only)
         except Exception as exc:
             print(f"Errore: {explain(str(exc))}", file=sys.stderr)
             return 1
@@ -91,7 +94,7 @@ def main(argv=None):
     try:
         result = core.download(args.url, args.output, args.format, args.bitrate, args.browser, args.items,
                                on_event=print_event, covers=args.covers, clean_titles=args.clean_titles,
-                               artist_names=args.artist_names)
+                               artist_names=args.artist_names, allowed_only=args.allowed_only)
     except Exception as exc:
         print(f"\nErrore: {explain(str(exc))}", file=sys.stderr)
         return 1

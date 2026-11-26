@@ -104,11 +104,13 @@ def video_id_in(message: str) -> str | None:
     return next(filter(None, (s.track_id_in(message) for s in SOURCES)), None)
 
 
-def _base_options(browser: str, cookies: str | None = None) -> dict:
+def _base_options(browser: str, cookies: str | None = None, allowed_only: bool = False) -> dict:
+    """allowed_only: from SoundCloud, only what the uploader lets people download. Read by the sources."""
     opts = {
         "quiet": True,
         "noprogress": True,
         "js_runtimes": js_runtimes(),
+        "allowed_only": allowed_only,
     }
     if cookies:  # a cookies.txt file wins over the browser: it's the only way on Android
         opts["cookiefile"] = str(cookies)
@@ -119,7 +121,7 @@ def _base_options(browser: str, cookies: str | None = None) -> dict:
 
 def build_options(output_dir: str, fmt: str = "mp3", bitrate: str = "192", browser: str = "none",
                   items: str | None = None, *, cookies: str | None = None, temp_dir: str | None = None,
-                  archive: str | None = None) -> dict:
+                  archive: str | None = None, allowed_only: bool = False) -> dict:
     """yt-dlp options without hooks. `items` uses yt-dlp's syntax, e.g. "1,3,5-8".
 
     temp_dir: where partial files are downloaded and tagged; only the finished file is moved to output_dir.
@@ -127,7 +129,7 @@ def build_options(output_dir: str, fmt: str = "mp3", bitrate: str = "192", brows
     archive: the archive file, by default next to the files (Android keeps it in app storage, for the same reason).
     """
     paths = {"home": str(output_dir)} | ({"temp": str(temp_dir)} if temp_dir else {})
-    opts = _base_options(browser, cookies) | {
+    opts = _base_options(browser, cookies, allowed_only) | {
         "paths": paths,
         "outtmpl": "%(playlist_index&{:03d} - |)s%(file_name,title)s.%(ext)s",  # a single song has no number
         "download_archive": str(archive or archive_path(output_dir)),
@@ -328,7 +330,7 @@ class _Current(PostProcessor):
         self.clean, self.artist_names = clean, artist_names  # this runs before the file name is made
 
     def run(self, info):
-        source_of(info).prepare(info)
+        source_of(info).prepare(info, self._downloader)
         if self.clean:
             title = info.get("title") or ""
             info["title"] = clean_title(title)
@@ -340,9 +342,9 @@ class _Current(PostProcessor):
         return [], info
 
 
-def list_playlist(url: str, browser: str = "none", cookies: str | None = None) -> dict:
+def list_playlist(url: str, browser: str = "none", cookies: str | None = None, allowed_only: bool = False) -> dict:
     """Titles and durations of the tracks, without downloading. Takes seconds even for long playlists."""
-    opts = _base_options(browser, cookies) | {"extract_flat": "in_playlist", "skip_download": True,
+    opts = _base_options(browser, cookies, allowed_only) | {"extract_flat": "in_playlist", "skip_download": True,
                                      "logger": _Logger(lambda e: None)}  # errors still raise; nothing printed
     source = source_for(url)
     with yt_dlp.YoutubeDL(opts) as ydl:
@@ -371,7 +373,8 @@ def list_playlist(url: str, browser: str = "none", cookies: str | None = None) -
 def download(url: str, output_dir: str = "downloads", fmt: str = "mp3", bitrate: str = "192",
              browser: str = "none", items: str | None = None, on_event=lambda e: None, cancel=None,
              cookies: str | None = None, temp_dir: str | None = None, archive: str | None = None,
-             covers: bool = False, clean_titles: bool = False, artist_names: bool = False) -> dict:
+             covers: bool = False, clean_titles: bool = False, artist_names: bool = False,
+             allowed_only: bool = False) -> dict:
     """Download the playlist, or the single song, into output_dir. Tracks already in the folder's archive are skipped.
 
     on_event gets dicts with "type": track_started, progress, track_done, track_skipped, warning, finished.
@@ -414,7 +417,7 @@ def download(url: str, output_dir: str = "downloads", fmt: str = "mp3", bitrate:
 
     logger = _Logger(emit)
     opts = build_options(output_dir, fmt, bitrate, browser, items, cookies=cookies, temp_dir=temp_dir,
-                         archive=archive) | {
+                         archive=archive, allowed_only=allowed_only) | {
         "logger": logger,
         "progress_hooks": [progress_hook],
     }

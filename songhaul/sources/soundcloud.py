@@ -8,6 +8,7 @@ SHORT_HOST = "on.soundcloud.com"
 # Second words of /<user>/<word> that are pages of the profile, and first words that aren't users.
 PAGES = {"albums", "comments", "followers", "following", "likes", "popular-tracks", "reposts", "sets", "spotlight",
          "toptracks", "tracks"}
+GO_PLUS = "SUB_HIGH_TIER"  # SoundCloud lets subscribers keep these offline only inside its own app
 NOT_USERS = {"charts", "discover", "feed", "library", "messages", "notifications", "pages", "people", "search",
              "settings", "stations", "stream", "tags", "upload", "you"}
 
@@ -16,7 +17,8 @@ class SoundCloud(Source):
     name = "SoundCloud"
     platform = "soundcloud"
     hosts = frozenset({"soundcloud.com", "www.soundcloud.com", "m.soundcloud.com", SHORT_HOST})
-    reasons = (("preview", ("only a preview",)),)
+    reasons = (("subscription", ("go+ subscribers",)), ("preview", ("only a preview",)),
+               ("not_offered", ("hasn't allowed downloads",)), ("login", ("needs your soundcloud account",)))
     cookie_domain = "soundcloud.com"
 
     def normalize(self, url: str) -> str:
@@ -51,12 +53,28 @@ class SoundCloud(Source):
             if t := known.get(e["id"]):
                 e["title"] = t.get("title") or e.get("title")
                 e["duration"] = (t.get("full_duration") or t.get("duration") or 0) / 1000 or e.get("duration")
-                e["problem"] = problem(t)
+                e["problem"] = problem(t, ydl.params.get("allowed_only"))
         return info
 
-    def prepare(self, info: dict) -> None:
+    def prepare(self, info: dict, ydl=None) -> None:
         if not info.get("artist") and info.get("uploader"):
             info["artist"] = info["uploader"]
+        if ydl and info.get("formats"):  # yt-dlp's info doesn't say it, and a subscriber gets the whole song
+            try:
+                track = self._tracks(ydl, [info["id"]], {}).get(info["id"], {})
+            except Exception:  # _call_api is internal to yt-dlp; the preview check below still holds for guests
+                track = {}
+            if ydl.params.get("allowed_only"):  # only the file the uploader offers, through SoundCloud's download
+                original = [f for f in info["formats"] if f["format_id"] == "download"]
+                if not original:
+                    raise ExtractorError("the original file needs your SoundCloud account" if offered(track) else
+                                         "the uploader hasn't allowed downloads", expected=True, ie="soundcloud",
+                                         video_id=info["id"])
+                info["formats"] = original
+                return
+            if track.get("monetization_model") == GO_PLUS:
+                raise ExtractorError("for Go+ subscribers, offline only in SoundCloud's app", expected=True,
+                                     ie="soundcloud", video_id=info["id"])
         formats = info.get("formats") or []
         whole = [f for f in formats if not f["format_id"].endswith("_preview")]
         if formats and not whole:  # it would be saved, and remembered, as if it were the song
@@ -98,11 +116,20 @@ class SoundCloud(Source):
         return found
 
 
-def problem(track: dict) -> str | None:
-    """Why yt-dlp won't download this track, if that's known beforehand."""
+def offered(track: dict) -> bool:
+    """Whether the uploader lets people download the original file (signed in only)."""
+    return bool(track.get("downloadable") and track.get("has_downloads_left"))
+
+
+def problem(track: dict, allowed_only: bool = False) -> str | None:
+    """Why this track won't be downloaded, if that's known beforehand."""
     if track.get("policy") == "BLOCK":
         return "region"
-    if track.get("downloadable") and track.get("has_downloads_left"):
+    if allowed_only:
+        return None if offered(track) else "not_offered"
+    if track.get("monetization_model") == GO_PLUS:
+        return "subscription"
+    if offered(track):
         return None  # the original file may be there even if the streams aren't
     streams = (track.get("media") or {}).get("transcodings") or []
     plain = [s for s in streams if not s["format"]["protocol"].startswith(("ctr-", "cbc-"))]

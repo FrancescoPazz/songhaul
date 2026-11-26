@@ -33,8 +33,9 @@ class FakeIE:
 
 
 class FakeYDL:
-    def __init__(self, info=None, fail=False, redirect=None):
+    def __init__(self, info=None, fail=False, redirect=None, allowed_only=False):
         self.info, self.ie, self.redirect = info, FakeIE(fail), redirect
+        self.params = {"allowed_only": allowed_only}
 
     def extract_info(self, url, download):
         return self.info
@@ -116,6 +117,31 @@ class Download(unittest.TestCase):
         info = {"id": "1", "formats": [{"format_id": "http_mp3_preview"}, {"format_id": "hls_aac_160k"}]}
         SoundCloud().prepare(info)
         self.assertEqual([f["format_id"] for f in info["formats"]], ["hls_aac_160k"])
+
+    def test_go_plus_tracks_are_skipped_even_for_subscribers(self):
+        ydl = FakeYDL()
+        TRACKS["9"] = {"id": 9, "monetization_model": "SUB_HIGH_TIER", "policy": "ALLOW"}
+        self.addCleanup(TRACKS.pop, "9")
+        with self.assertRaises(ExtractorError) as e:  # a subscriber's formats are whole songs
+            SoundCloud().prepare({"id": "9", "formats": [{"format_id": "hls_aac_160k"}]}, ydl)
+        self.assertEqual((core.reason_kind(str(e.exception)), core.video_id_in(str(e.exception))), ("subscription", "9"))
+        self.assertEqual(listing(["9"])[0][0]["problem"], "subscription")
+        SoundCloud().prepare({"id": FREE, "formats": [{"format_id": "hls_aac_160k"}]}, ydl)  # others go on
+        SoundCloud().prepare({"id": "9", "formats": [{"format_id": "hls_aac_160k"}]}, FakeYDL(fail=True))  # no answer
+
+    def test_only_downloads_the_uploader_allows(self):
+        ydl = FakeYDL(allowed_only=True)
+        OFFERED = "1378976746"
+        streams = [{"format_id": "hls_aac_160k"}, {"format_id": "http_mp3_128"}]
+        info = {"id": OFFERED, "formats": [*streams, {"format_id": "download"}]}
+        SoundCloud().prepare(info, ydl)
+        self.assertEqual(info["formats"], [{"format_id": "download"}])  # the original file, not the stream
+        for track, kind in ((OFFERED, "login"), (FREE, "not_offered"), (DOWNLOADABLE, "not_offered")):
+            with self.assertRaises(ExtractorError, msg=track) as e:  # SoundCloud gives the original to signed in users
+                SoundCloud().prepare({"id": track, "formats": list(streams)}, ydl)
+            self.assertEqual((core.reason_kind(str(e.exception)), core.video_id_in(str(e.exception))), (kind, track))
+        entries, _ = listing([OFFERED, FREE, DOWNLOADABLE, DRM], allowed_only=True)
+        self.assertEqual([e["problem"] for e in entries], [None, "not_offered", "not_offered", "not_offered"])
 
     def test_a_track_with_previews_only_is_skipped_with_its_reason(self):
         with self.assertRaises(ExtractorError) as e:

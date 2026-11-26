@@ -36,6 +36,7 @@ DEFAULTS = {
     "covers": True,
     "clean_titles": False,
     "artist_names": False,
+    "allowed_only": False,
 }
 HISTORY_LIMIT = 100
 COOKIES = DATA / "cookies.txt"
@@ -411,7 +412,7 @@ class App:
 
     def load_worker(self, url):
         try:
-            playlist = core.list_playlist(url, self.settings["browser"], self.cookies())
+            playlist = core.list_playlist(url, self.settings["browser"], self.cookies(), self.settings["allowed_only"])
         except Exception as ex:
             self.playlist = None
             self.last_line = self.t("load_failed", reason=self.reason(core.reason_kind(str(ex))))
@@ -513,7 +514,8 @@ class App:
                                    cookies=self.cookies(), temp_dir=str(ANDROID_PARTIAL) if self.mobile else None,
                                    archive=str(archive), covers=self.settings["covers"],
                                    clean_titles=self.settings["clean_titles"],
-                                   artist_names=self.settings["artist_names"])
+                                   artist_names=self.settings["artist_names"],
+                                   allowed_only=self.settings["allowed_only"])
         except Exception as ex:
             self.last_line = self.t("download_failed", reason=self.reason(core.reason_kind(str(ex))))
             self.remember_error(str(ex))
@@ -649,10 +651,16 @@ class App:
             ft.Switch(label=self.t("artist_names"), value=self.settings["artist_names"], disabled=self.downloading,
                       on_change=lambda e: self.set_setting("artist_names", e.control.value)),
             ft.Text(self.t("files_help"), color=ft.Colors.ON_SURFACE_VARIANT))
+        soundcloud = section(
+            "SoundCloud",
+            ft.Switch(label=self.t("allowed_only"), value=self.settings["allowed_only"], disabled=self.downloading,
+                      on_change=lambda e: self.set_setting("allowed_only", e.control.value)),
+            ft.Text(self.t("allowed_only_help"), color=ft.Colors.ON_SURFACE_VARIANT))
         return ft.ListView([
             files,
             *([] if self.mobile else [browser]),
             cookies,
+            soundcloud,
             section(self.t("language"),
                     ft.Dropdown(value=self.settings["language"], width=260,
                                 options=[ft.DropdownOption(key="auto", text=self.t("language_auto")),
@@ -668,6 +676,7 @@ class App:
                     ft.Text(self.t("about_versions", app=__version__, ytdlp=yt_dlp.version.__version__)),
                     ft.Text(self.t("about_ffmpeg", ffmpeg=ffmpeg), visible=not self.mobile),
                     ft.Text(self.t("about_js", js=js)),
+                    ft.Text(self.t("disclaimer"), color=ft.Colors.ON_SURFACE_VARIANT),
                     ft.FilledTonalButton(self.t("update_available", tag=self.update["tag"]) if self.update else "",
                                          icon=ft.Icons.SYSTEM_UPDATE, visible=bool(self.update),
                                          on_click=lambda e: self.open_url(self.update["url"])),

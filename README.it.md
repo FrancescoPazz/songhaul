@@ -32,12 +32,36 @@
 | **Scaricare dal terminale** | [Installazione](#installazione), poi [Uso](#uso): due comandi e un link. |
 | **Sapere cosa finisce sul disco** | [Come funziona](#come-funziona): nomi dei file, tag, brani saltati e nuove esecuzioni. |
 | **Scaricare video con limite d'età o privati** | [Cookie del browser](#cookie-del-browser): usa la sessione in cui hai già fatto l'accesso. |
+| **Sapere cosa puoi scaricare** | [Termini e responsabilità](#termini-e-responsabilità): cosa dicono i termini di YouTube e SoundCloud. |
 | **Sapere quali siti funzionano** | [Piattaforme](#piattaforme): cosa funziona e cosa non si può scaricare. |
 | **Usarlo dal tuo codice Python** | [Sviluppo](#sviluppo): il pacchetto `songhaul` e i suoi eventi. |
 | **Qualcosa è andato storto** | [Domande](#domande-frequenti): FFmpeg, buchi nella numerazione, file `NA`, HTTP 403. |
 
-[Come funziona](#come-funziona) · [Piattaforme](#piattaforme) · [Scarica l'app](#scarica-lapp) · [App desktop](#app-desktop) · [App Android](#app-android) · [Installazione](#installazione) · [Uso](#uso) · [Cookie del browser](#cookie-del-browser) ·
+[Termini](#termini-e-responsabilità) · [Come funziona](#come-funziona) · [Piattaforme](#piattaforme) · [Scarica l'app](#scarica-lapp) · [App desktop](#app-desktop) · [App Android](#app-android) · [Installazione](#installazione) · [Uso](#uso) · [Cookie del browser](#cookie-del-browser) ·
 [Sviluppo](#sviluppo) · [Roadmap](docs/ROADMAP.md) · [Domande](#domande-frequenti)
+
+## Termini e responsabilità
+
+Leggilo prima di usarlo. È un riassunto, non un parere legale.
+
+| | Cosa dicono i suoi termini |
+|---|---|
+| **[YouTube](https://www.youtube.com/t/terms)** (termini del 30 maggio 2023) | Non si possono scaricare contenuti se non come lo consente il servizio stesso (per esempio il pulsante di download di Premium), con il permesso scritto di YouTube e dei titolari dei diritti, o come lo permette la legge applicabile. Sono vietati anche l'accesso con mezzi automatici e l'aggiramento delle funzioni che limitano la copia. |
+| **[SoundCloud](https://soundcloud.com/terms-of-use)** (ultima versione che abbiamo potuto leggere: dicembre 2020) | L'audio si può copiare solo con le funzioni di download o di ascolto offline di SoundCloud, dove chi l'ha caricato lo consente. Le protezioni dalla copia non vanno aggirate. |
+
+Quindi scaricare con Songhaul va oltre ciò che questi termini consentono, salvo che una delle loro eccezioni valga per te.
+Il diritto d'autore è un'altra questione: usalo solo per ciò che hai il diritto di copiare, come i tuoi caricamenti, le
+opere di pubblico dominio o quelle la cui licenza lo consente. Sei tu responsabile dell'uso che ne fai.
+
+Per SoundCloud c'è un modo che resta nei suoi termini: l'impostazione **Solo i download consentiti da chi carica**
+(`--allowed-only`) scarica solo le tracce in cui chi le ha caricate ha attivato il download, nel file originale, con il
+tuo account. Vedi [SoundCloud](#soundcloud).
+
+Cosa fa Songhaul dalla sua parte: non aggira DRM, anteprime o abbonamenti; usa solo l'accesso che hai già (niente account
+condivisi né chiavi); non ridistribuisce niente; è per uso personale.
+
+Songhaul non è affiliato a YouTube, Google o SoundCloud, né approvato o sponsorizzato da loro. YouTube e YouTube Music sono
+marchi di Google LLC; SoundCloud è un marchio del suo titolare.
 
 ## Come funziona
 
@@ -86,8 +110,9 @@ stazioni no: il link dev'essere di una traccia o di un set.
 |---|---|
 | **Tracce con DRM** | Molte tracce commerciali sono trasmesse cifrate. Non si possono scaricare e vengono saltate con il motivo; nell'app sono segnalate appena carichi il set. Aggirare il DRM qui non è previsto. |
 | **Tracce Go+** | Senza abbonamento SoundCloud manda solo 30 secondi. Vengono saltate anche queste, invece di salvarle come se fossero il brano. |
+| **Solo i download consentiti da chi carica** | Disattivo di default. Se attivo, prende solo le tracce in cui chi le ha caricate ha attivato il download, nel file originale che dà il pulsante di download di SoundCloud: il modo che i suoi termini consentono. Le altre sono segnalate appena carichi il set. SoundCloud dà quel file solo a chi ha fatto l'accesso, quindi servono i cookie del tuo account (browser o `cookies.txt`). Il formato lo sceglie chi carica (spesso MP3 o WAV): l'MP3 lo converte se serve, l'M4A lo prende solo se lo è già. |
 | **Tracce e set privati** | Usa il link segreto (quello che finisce con `/s-…`). |
-| **Con il tuo account** | I cookie del browser o un `cookies.txt` di soundcloud.com vengono passati a yt-dlp, che può usare il tuo abbonamento. Non provato da noi con un account Go+. |
+| **Con il tuo account** | I cookie del browser o un `cookies.txt` di soundcloud.com vengono passati a yt-dlp, per le tracce private a cui hai accesso. Le tracce Go+ vengono saltate anche con l'abbonamento: SoundCloud le offre offline solo nella sua app. |
 | **Qualità** | AAC a 96 o 160 kbps, che l'M4A conserva così com'è. Un MP3 a 320 kbps occupa solo più spazio. |
 | **Tag** | Titolo, artista, il set come album, e la copertina. |
 
@@ -108,14 +133,14 @@ stazioni no: il link dev'essere di una traccia o di un set.
 |---|---|
 | <img src="docs/screenshots/it/download.png" alt="Schermata Scarica: il link della playlist, un brano con la spunta verde, formato MP3 a 192 kbps e la cartella di destinazione" width="420"> | <img src="docs/screenshots/it/history.png" alt="Schermata Cronologia: una playlist con data, formato, cartella e i pulsanti Apri cartella, Ricarica e Sincronizza" width="420"> |
 | *Scarica: i brani, cosa è fatto e dove finisce* | *Cronologia: ogni download, con cosa è stato saltato e perché* |
-| <img src="docs/screenshots/it/settings.png" alt="Schermata Impostazioni: cookie del browser, lingua, tema e le versioni di yt-dlp, FFmpeg e del runtime JavaScript" width="420"> | |
+| <img src="docs/screenshots/it/settings.png" alt="Schermata Impostazioni: opzioni dei file, cookie del browser, cookies.txt, solo i download consentiti su SoundCloud, lingua, tema, versioni in uso e la nota di non affiliazione" width="420"> | |
 | *Impostazioni: cookie, lingua, tema, e cosa l'app ha trovato sul computer* | |
 
 | Schermata | Cosa c'è |
 |---|---|
 | **Scarica** | Il campo del link, riempito dagli appunti quando contengono un link di YouTube o SoundCloud. **Carica** elenca i brani con posizione e durata; spunta quelli che vuoi. I brani già presenti nella cartella di destinazione sono segnati e lasciati fuori. Formato, qualità MP3 e cartella stanno in basso; ogni playlist ha la sua sottocartella, un brano singolo va direttamente nella cartella. Durante il download ogni brano mostra l'avanzamento, poi una spunta o un'icona rossa con il motivo del salto nel suggerimento. **Annulla** si ferma dopo il blocco in corso. |
 | **Cronologia** | Gli ultimi 100 download: playlist, data, formato, cartella, quanti brani sono stati salvati e quali saltati, con il motivo. **Apri cartella**, **Ricarica**, e **Sincronizza**, che ricarica la playlist e scarica solo i brani aggiunti nel frattempo. |
-| **Impostazioni** | Copertina nei file (attiva di default), titoli puliti e artista nel nome del file (disattivi), cookie del browser (vedi [Cookie del browser](#cookie-del-browser)) o un file `cookies.txt`, lingua (italiano, inglese o quella del sistema), tema (chiaro, scuro o quello del sistema), le versioni di yt-dlp, FFmpeg e del runtime JavaScript in uso, e **Segnala un problema**: copia quelle versioni e gli ultimi errori (senza link) e apre una nuova issue su GitHub già compilata. |
+| **Impostazioni** | Copertina nei file (attiva di default), titoli puliti e artista nel nome del file (disattivi), solo i download consentiti da chi carica su SoundCloud (disattivo), cookie del browser (vedi [Cookie del browser](#cookie-del-browser)) o un file `cookies.txt`, lingua (italiano, inglese o quella del sistema), tema (chiaro, scuro o quello del sistema), le versioni di yt-dlp, FFmpeg e del runtime JavaScript in uso, e **Segnala un problema**: copia quelle versioni e gli ultimi errori (senza link) e apre una nuova issue su GitHub già compilata. |
 
 L'app usa un suo FFmpeg (dal pacchetto `imageio-ffmpeg`) quando nel PATH non ce n'è uno, quindi l'MP3 funziona senza
 installare altro. Impostazioni e cronologia sono salvate in
@@ -206,6 +231,7 @@ python downloader.py "https://soundcloud.com/artista/sets/nome"
 | `--list` | | | Elenca i brani con posizione e durata, senza scaricarli. |
 | `--covers` | | no | Inserisce la copertina (per i video, la miniatura), ritagliata quadrata (il ritaglio richiede Pillow). |
 | `--artist-names` | | no | Mette l'artista nel nome del file, se il titolo non lo contiene già. |
+| `--allowed-only` | | no | Da SoundCloud solo le tracce di cui chi le ha caricate consente il download, nel file originale. Servono i cookie del tuo account. |
 | `--clean-titles` | | no | Toglie "(Official Video)", "[VISUALIZER]" e simili da titoli e nomi dei file; "(Remix)", "(feat. …)" restano. |
 
 ```bash
@@ -371,7 +397,6 @@ installati, e poi prova `--browser` con un browser in cui hai fatto l'accesso.
 
 </details>
 
-Usalo solo per contenuti che hai il diritto di scaricare, rispettando i termini di servizio del sito e il diritto
-d'autore di ogni brano.
+Usalo solo come descritto in [Termini e responsabilità](#termini-e-responsabilità).
 
 Rilasciato con [licenza MIT](LICENSE).

@@ -32,12 +32,36 @@
 | **Download from the terminal** | [Install](#install), then [Usage](#usage): two commands and a link. |
 | **Know what ends up on disk** | [How it works](#how-it-works): file names, tags, skipped tracks and re-runs. |
 | **Download age-restricted or private videos** | [Browser cookies](#browser-cookies): use the session you are already signed in with. |
+| **Know what you may download** | [Terms and responsibility](#terms-and-responsibility): what YouTube's and SoundCloud's terms say. |
 | **Know which sites work** | [Platforms](#platforms): what works, and what can't be downloaded. |
 | **Use it from your own Python code** | [Development](#development): the `songhaul` package and its events. |
 | **Something went wrong** | [Questions](#questions-people-ask): FFmpeg, gaps in the numbering, `NA` files, HTTP 403. |
 
-[How it works](#how-it-works) · [Platforms](#platforms) · [Download the app](#download-the-app) · [Desktop app](#desktop-app) · [Android app](#android-app) · [Install](#install) · [Usage](#usage) · [Browser cookies](#browser-cookies) ·
+[Terms](#terms-and-responsibility) · [How it works](#how-it-works) · [Platforms](#platforms) · [Download the app](#download-the-app) · [Desktop app](#desktop-app) · [Android app](#android-app) · [Install](#install) · [Usage](#usage) · [Browser cookies](#browser-cookies) ·
 [Development](#development) · [Roadmap](docs/ROADMAP.md) · [Questions](#questions-people-ask)
+
+## Terms and responsibility
+
+Read this before using it. It's a summary, not legal advice.
+
+| | What its terms say |
+|---|---|
+| **[YouTube](https://www.youtube.com/t/terms)** (terms of 30 May 2023) | You may not download content except as the service itself allows (for example the Premium download button), with written permission from YouTube and the rights holders, or as applicable law permits. Accessing it by automated means and getting around features that restrict copying are not allowed either. |
+| **[SoundCloud](https://soundcloud.com/terms-of-use)** (latest version we could read: December 2020) | Audio may be copied only with SoundCloud's own download or offline features, where the uploader has allowed it. Copy protection must not be circumvented. |
+
+So downloading with Songhaul goes beyond what these terms allow, unless one of their exceptions applies to you. Copyright
+is a separate matter: use it only for what you have the right to copy, such as your own uploads, public domain works, or
+works whose licence allows it. You are responsible for how you use it.
+
+For SoundCloud there's a way that stays within its terms: the **Only downloads the uploader allows** setting
+(`--allowed-only`) downloads only the tracks whose uploader turned on downloads, as the original file, with your
+account. See [SoundCloud](#soundcloud).
+
+What Songhaul does on its side: it doesn't get around DRM, previews or subscriptions; it uses only the access you already
+have (no shared accounts, no keys); it doesn't redistribute anything; it's for personal use.
+
+Songhaul is not affiliated with, endorsed or sponsored by YouTube, Google or SoundCloud. YouTube and YouTube Music are
+trademarks of Google LLC; SoundCloud is a trademark of its owner.
 
 ## How it works
 
@@ -87,8 +111,9 @@ don't: the link has to be a track or a set.
 |---|---|
 | **Tracks with DRM** | Many commercial tracks are streamed encrypted. They can't be downloaded and are skipped with the reason; in the app they're marked as soon as the set is loaded. Getting around DRM is out of the question here. |
 | **Go+ tracks** | Without a subscription SoundCloud sends only 30 seconds. They're skipped too, rather than saved as if they were the song. |
+| **Only downloads the uploader allows** | Off by default. When on, only the tracks whose uploader turned on downloads are taken, as the original file that SoundCloud's own download button gives: the way its terms allow. The others are marked as soon as the set is loaded. SoundCloud gives that file only to signed-in users, so it needs your account's cookies (browser or `cookies.txt`). The uploader picks its format (often MP3 or WAV): MP3 converts it if needed, M4A takes it only if it already is one. |
 | **Private tracks and sets** | Use the secret link (the one ending in `/s-…`). |
-| **With your account** | Browser cookies or a `cookies.txt` of soundcloud.com are passed to yt-dlp, which can then use your subscription. Not tested by us with a Go+ account. |
+| **With your account** | Browser cookies or a `cookies.txt` of soundcloud.com are passed to yt-dlp, for private tracks you can access. Go+ tracks are skipped even with a subscription: SoundCloud offers them offline only in its own app. |
 | **Quality** | AAC at 96 or 160 kbps, which M4A keeps as it is. A 320 kbps MP3 only makes the file bigger. |
 | **Tags** | Title, artist, the set as album, and the cover art. |
 
@@ -109,14 +134,14 @@ don't: the link has to be a track or a set.
 |---|---|
 | <img src="docs/screenshots/en/download.png" alt="Download screen: the playlist link, one track with a green check mark, format MP3 at 192 kbps and the destination folder" width="420"> | <img src="docs/screenshots/en/history.png" alt="History screen: one playlist with date, format, folder and the buttons Open folder, Load again and Sync" width="420"> |
 | *Download: the tracks, what's done and where it goes* | *History: every download, with what was skipped and why* |
-| <img src="docs/screenshots/en/settings.png" alt="Settings screen: browser cookies, language, theme and the versions of yt-dlp, FFmpeg and the JavaScript runtime" width="420"> | |
+| <img src="docs/screenshots/en/settings.png" alt="Settings screen: file options, browser cookies, cookies.txt, only the downloads SoundCloud uploaders allow, language, theme, versions in use and the not-affiliated note" width="420"> | |
 | *Settings: cookies, language, theme, and what the app found on the computer* | |
 
 | Screen | What is on it |
 |---|---|
 | **Download** | The link field, filled in from the clipboard when it holds a YouTube or SoundCloud link. **Load** lists the tracks with position and duration; tick the ones you want. Tracks already in the destination folder are marked and left out. Format, MP3 quality and folder sit at the bottom; each playlist gets its own subfolder, a single song goes straight into the folder. During the download every track shows its progress, then a check mark or a red icon whose tooltip says why it was skipped. **Cancel** stops after the current chunk. |
 | **History** | The last 100 downloads: playlist, date, format, folder, how many tracks were saved and which were skipped, with the reason. **Open folder**, **Load again**, and **Sync**, which loads the playlist and downloads only the tracks added since. |
-| **Settings** | Cover art in the files (on by default), clean titles and artist in the file name (off), browser cookies (see [Browser cookies](#browser-cookies)) or a `cookies.txt` file, language (Italian, English or the system's), theme (light, dark or the system's), the versions of yt-dlp, FFmpeg and the JavaScript runtime in use, and **Report a problem**: it copies those versions and the last errors (no links) and opens a new GitHub issue with them. |
+| **Settings** | Cover art in the files (on by default), clean titles and artist in the file name (off), only downloads the SoundCloud uploader allows (off), browser cookies (see [Browser cookies](#browser-cookies)) or a `cookies.txt` file, language (Italian, English or the system's), theme (light, dark or the system's), the versions of yt-dlp, FFmpeg and the JavaScript runtime in use, and **Report a problem**: it copies those versions and the last errors (no links) and opens a new GitHub issue with them. |
 
 The app uses its own FFmpeg (from the `imageio-ffmpeg` package) when there is none on the PATH, so MP3 works without
 installing anything else. Settings and history are saved in
@@ -206,6 +231,7 @@ python downloader.py "https://soundcloud.com/artist/sets/name"
 | `--list` | | | Print the tracks with their position and duration, without downloading. |
 | `--covers` | | off | Embed the cover (for videos, the thumbnail), cropped square (cropping needs Pillow). |
 | `--artist-names` | | off | Put the artist in the file name, unless the title already has it. |
+| `--allowed-only` | | off | From SoundCloud, only the tracks whose uploader allows downloads, as the original file. Needs your account's cookies. |
 | `--clean-titles` | | off | Drop "(Official Video)", "[VISUALIZER]" and the like from titles and file names; "(Remix)", "(feat. …)" stay. |
 
 ```bash
@@ -370,7 +396,6 @@ installed, and then try `--browser` with a browser where you are signed in.
 
 </details>
 
-Use it only for content you are allowed to download, following the site's terms of service and the copyright of each
-track.
+Use it only as described in [Terms and responsibility](#terms-and-responsibility).
 
 Released under the [MIT license](LICENSE).
